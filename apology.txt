@@ -1,0 +1,8 @@
+I fucked up the commit history when switching back to windows, props to me!
+
+Note to future self:
+
+DO NOT JUST "git push --force origin master" EVER AGAIN
+
+sincerely
+-the dev
