@@ -1,0 +1,19 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/TestingWorld.obj-e45dc28910f0e2cbf96ac4c779b3a0f7.mesh"
+
+[deps]
+
+files=[ "res://.import/TestingWorld.obj-e45dc28910f0e2cbf96ac4c779b3a0f7.mesh" ]
+
+source_file="res://assets/TestingWorld.obj"
+dest_files=[ "res://.import/TestingWorld.obj-e45dc28910f0e2cbf96ac4c779b3a0f7.mesh", "res://.import/TestingWorld.obj-e45dc28910f0e2cbf96ac4c779b3a0f7.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( 0, 0, 0 )
+optimize_mesh=true
