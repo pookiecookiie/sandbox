@@ -1,17 +1,18 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://scenes/ui/Chat/Chat.gd" type="Script" id=1]
 [ext_resource path="res://fonts/Roboto-Regular.ttf" type="DynamicFontData" id=2]
+
+[sub_resource type="StyleBoxFlat" id=4]
+bg_color = Color( 0.145098, 0.145098, 0.164706, 0.501961 )
 
 [sub_resource type="DynamicFont" id=1]
 font_data = ExtResource( 2 )
 
 [sub_resource type="DynamicFont" id=2]
-size = 32
 font_data = ExtResource( 2 )
 
 [sub_resource type="DynamicFont" id=3]
-size = 24
 font_data = ExtResource( 2 )
 
 [node name="Chat" type="Control"]
@@ -29,41 +30,44 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="TextBox" type="RichTextLabel" parent="VBox"]
+[node name="Panel" type="Panel" parent="VBox"]
 margin_right = 1024.0
-margin_bottom = 541.0
+margin_bottom = 600.0
+size_flags_vertical = 3
+custom_styles/panel = SubResource( 4 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TextBox" type="RichTextLabel" parent="VBox/Panel"]
+margin_right = 1024.0
+margin_bottom = 551.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_fonts/normal_font = SubResource( 1 )
 bbcode_enabled = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
-[node name="Margin" type="MarginContainer" parent="VBox"]
-margin_top = 545.0
+[node name="HBox" type="HBoxContainer" parent="VBox/Panel"]
+margin_top = 571.0
 margin_right = 1024.0
 margin_bottom = 600.0
-custom_constants/margin_right = 8
-custom_constants/margin_top = 8
-custom_constants/margin_left = 8
-custom_constants/margin_bottom = 8
 
-[node name="HBox" type="HBoxContainer" parent="VBox/Margin"]
-margin_left = 8.0
-margin_top = 8.0
-margin_right = 1016.0
-margin_bottom = 47.0
-
-[node name="Player" type="Label" parent="VBox/Margin/HBox"]
-margin_right = 131.0
-margin_bottom = 38.0
+[node name="Player" type="Label" parent="VBox/Panel/HBox"]
+margin_top = 5.0
+margin_right = 66.0
+margin_bottom = 24.0
 custom_fonts/font = SubResource( 2 )
 custom_colors/font_color = Color( 0.666667, 0.666667, 0.666667, 1 )
-text = "[PLAYER]"
+text = " PLAYER]"
+align = 1
 
-[node name="Input" type="LineEdit" parent="VBox/Margin/HBox"]
-margin_left = 135.0
-margin_right = 1008.0
-margin_bottom = 39.0
+[node name="Input" type="LineEdit" parent="VBox/Panel/HBox"]
+margin_left = 70.0
+margin_right = 1024.0
+margin_bottom = 29.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_fonts/font = SubResource( 3 )
-text = "Testing input"

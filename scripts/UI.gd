@@ -1,9 +1,17 @@
 extends Node
 
-onready var ChatScene = preload("res://scenes/ui/Chat/Chat.tscn")
+onready var Chat = get_node("/root/main/ui/Chat")
+onready var Lobby = get_node("/root/main/ui/Lobby")
 
 func _input(event):
-	pass
+	if event.is_action_pressed("ui_accept") and !Chat.visible:
+		Chat.toggle()
+	
+	if event.is_action_pressed("ui_cancel") and Chat.visible:
+		Chat.toggle()
+	
+	if event.is_action_pressed("clear_console"):
+		Chat.clear_log()
 
 
 func has_open_window(windows:Dictionary):
@@ -15,3 +23,4 @@ func has_open_window(windows:Dictionary):
 			break
 	
 	return has_open_window
+

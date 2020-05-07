@@ -1,0 +1,125 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://fonts/Roboto-Regular.ttf" type="DynamicFontData" id=1]
+[ext_resource path="res://scenes/ui/Lobby/scenes/ServerInfo.gd" type="Script" id=2]
+
+[sub_resource type="DynamicFont" id=2]
+size = 24
+font_data = ExtResource( 1 )
+
+[sub_resource type="DynamicFont" id=3]
+font_data = ExtResource( 1 )
+
+[node name="ServerInfo" type="MarginContainer"]
+margin_top = 179.0
+margin_right = 200.0
+margin_bottom = 347.0
+size_flags_horizontal = 3
+custom_constants/margin_right = 16
+custom_constants/margin_top = 16
+custom_constants/margin_left = 16
+custom_constants/margin_bottom = 16
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Background" type="Button" parent="."]
+margin_left = 16.0
+margin_top = 16.0
+margin_right = 184.0
+margin_bottom = 152.0
+
+[node name="Inner" type="MarginContainer" parent="."]
+margin_left = 16.0
+margin_top = 16.0
+margin_right = 184.0
+margin_bottom = 152.0
+custom_constants/margin_right = 16
+custom_constants/margin_top = 16
+custom_constants/margin_left = 16
+custom_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="Inner"]
+margin_left = 16.0
+margin_top = 16.0
+margin_right = 152.0
+margin_bottom = 120.0
+custom_constants/separation = 8
+
+[node name="Header" type="MarginContainer" parent="Inner/VBox"]
+margin_right = 136.0
+margin_bottom = 45.0
+custom_constants/margin_bottom = 16
+
+[node name="ServerName" type="Label" parent="Inner/VBox/Header"]
+margin_right = 136.0
+margin_bottom = 29.0
+size_flags_vertical = 5
+custom_fonts/font = SubResource( 2 )
+text = "ServerName"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="IPRow" type="HBoxContainer" parent="Inner/VBox"]
+margin_top = 53.0
+margin_right = 136.0
+margin_bottom = 72.0
+
+[node name="IPLabel" type="Label" parent="Inner/VBox/IPRow"]
+margin_right = 18.0
+margin_bottom = 19.0
+mouse_filter = 1
+size_flags_vertical = 5
+custom_fonts/font = SubResource( 3 )
+text = "IP:"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="IP" type="Label" parent="Inner/VBox/IPRow"]
+margin_left = 22.0
+margin_right = 136.0
+margin_bottom = 19.0
+size_flags_horizontal = 3
+size_flags_vertical = 5
+custom_fonts/font = SubResource( 3 )
+text = "127.0.0.1"
+valign = 1
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ClientsRow" type="HBoxContainer" parent="Inner/VBox"]
+margin_top = 80.0
+margin_right = 136.0
+margin_bottom = 99.0
+
+[node name="ClientsLabel" type="Label" parent="Inner/VBox/ClientsRow"]
+margin_right = 87.0
+margin_bottom = 19.0
+hint_tooltip = "Maximum number of clients"
+mouse_filter = 1
+size_flags_vertical = 5
+custom_fonts/font = SubResource( 3 )
+text = "Max Clients:"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Clients" type="Label" parent="Inner/VBox/ClientsRow"]
+margin_left = 91.0
+margin_right = 136.0
+margin_bottom = 19.0
+size_flags_horizontal = 3
+size_flags_vertical = 5
+custom_fonts/font = SubResource( 3 )
+text = "5"
+valign = 1
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}

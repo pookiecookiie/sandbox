@@ -16,9 +16,9 @@ extends Control
 #
 # Nodes
 
-onready var ChatLog = $VBox/TextBox
-onready var InputLabel = $VBox/Margin/HBox/Player
-onready var InputField = $VBox/Margin/HBox/Input
+onready var ChatLog = $VBox/Panel/TextBox
+onready var InputLabel = $VBox/Panel/HBox/Player
+onready var InputField = $VBox/Panel/HBox/Input
 
 # ==============================================================================
 
@@ -156,10 +156,6 @@ func _ready():
 
 
 func _input(event:InputEvent):
-	if event.is_action_pressed("toggle_console"):
-		self.visible = !self.visible
-
-
 	if event.is_action_pressed("ui_accept"):
 		InputField.grab_focus()
 	
@@ -216,10 +212,11 @@ func add_text(text, color):
 	ChatLog.bbcode_text += "[/color]"
 
 
-func add_message(text, username):
+func add_log(text, username=null):
 	ChatLog.bbcode_text += "\n "
 	
 	add_label(ChatTypes.chat.name.to_upper(), ChatTypes.chat.label_color)
+	
 	if username:
 		add_label(username, ChatTypes.chat.username_color, true)
 	add_text(text, ChatTypes.chat.text_color)
@@ -229,6 +226,9 @@ func add_message(text, username):
 
 
 func add_command(text, chat_command):
+	if chat_command == ChatTypes.command.error:
+		self.visible = true
+	
 	var command = ChatTypes.command[chat_command.name]
 	
 	ChatLog.bbcode_text += "\n "
@@ -247,7 +247,8 @@ func run_chat_function(raw:PoolStringArray):
 		#TODO:
 		#
 		#Only callable if this is the server
-		__server(params.join(" "))
+		
+		log_server(params.join(" "))
 		return
 	
 	
@@ -260,10 +261,10 @@ func run_chat_function(raw:PoolStringArray):
 		return
 	
 	if function == ChatFunctions.clear:
-		__clear()
+		clear_log()
 		return
 	
-	__error(Error.COMMAND_NOT_FOUND)
+	log_error(Error.COMMAND_NOT_FOUND)
 	
 
 # ==============================================================================
@@ -274,13 +275,13 @@ func run_chat_function(raw:PoolStringArray):
 # Chat Functions
 
 # UTILITY
-func __server(msg):
+func log_server(msg):
 	add_command(msg, ChatTypes.command.server)
 
-func __error(msg):
+func log_error(msg):
 	add_command(msg, ChatTypes.command.error)
 
-func __warning(msg):
+func log_warning(msg):
 	add_command(msg, ChatTypes.command.warning)
 
 
@@ -300,6 +301,9 @@ func concatenate_strings(strings, separator=" =>", wrapper=["[ ", " ]"]):
 	return string
 
 
+func toggle():
+	self.visible = !self.visible
+
 # COMMANDS
 func __say(msg):
 	if msg == "history":
@@ -310,7 +314,7 @@ func __say(msg):
 	if msg == "networkID":
 		var id = get_tree().get_network_unique_id()
 		if id == 0:
-			__warning(Warning.NOT_CONNECTED)
+			log_warning(Warning.NOT_CONNECTED)
 			return
 		__say(Log.NETWORK_ID + '"'+str(id)+'"')
 		return
@@ -318,7 +322,7 @@ func __say(msg):
 	if msg == "networkPeers":
 		var peers = get_tree().get_network_connected_peers()
 		if peers.empty():
-			__warning("There are no peers connected to your network!")
+			log_warning("There are no peers connected to your network!")
 			return
 		__say(Log.NETWORK_PEERS + " " + str(peers))
 		return
@@ -351,15 +355,15 @@ func __set(args):
 				prop_args[0]
 			])
 			
-			__error(err)
+			log_error(err)
 			return
 	
-	__error(Error.COMMAND_NOT_FOUND)
+	log_error(Error.COMMAND_NOT_FOUND)
 
 
-func __clear():
+func clear_log():
 	ChatLog.bbcode_text = ""
-	add_message("Chat cleared!", null)
+	add_log("Chat cleared!", null)
 
 
 # ==============================================================================
@@ -371,7 +375,7 @@ func __clear():
 
 func _on_text_entered(text:String):
 	if !InputField.text.empty():
-		add_message(text, username)
+		add_log(text, username)
 	InputField.text = ""
 	
 
