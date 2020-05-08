@@ -52,6 +52,8 @@ func create_server(port=DEFAULT_PORT, max_clients=MAX_CLIENTS):
 	
 	if err != OK:
 		UI.Chat.log_error("Could not create server on port " + str(port) + " [ERR "+str(err)+"]")
+	else:
+		UI.Chat.log_success("Server created on port: [" + str(port) + "]")
 	
 	return err
 
@@ -63,8 +65,13 @@ func join_server(ip=DEFAULT_IP, port=DEFAULT_PORT):
 	
 	if err != OK:
 		UI.Chat.log_error("Could not join server " + ip+":"+str(port) + " [ERR "+str(err)+"]")
-	
+	else:
+		UI.Chat.log_success("Joining server... " + ip+":"+str(port))
 	return err
+
+
+func leave_server():
+	get_tree().network_peer = null
 
 
 func add_server(server:Dictionary):
@@ -84,9 +91,13 @@ func edit_server(server, edited_server:Dictionary):
 # Networking functions 
 
 remote func pre_configure_game():
-	get_tree().set_pause(true)
+	#get_tree().set_pause(true)
 	
 	var selfPeerID = get_tree().get_network_unique_id()
+	
+	player_info[selfPeerID] = {
+		"username": "User_"+str(selfPeerID)
+	}
 	
 	# Load world
 	var world = load("res://scenes/world/World.tscn").instance()
@@ -108,10 +119,9 @@ remote func pre_configure_game():
 	# Tell server (remember, server is always ID=1) that this peer is done pre-configuring.
 	rpc_id(1, "done_preconfiguring", selfPeerID)
 
-
 var players_done = []
-
-remote func done_preconfiguring(who):
+sync func done_preconfiguring(who):
+	
 	# Here are some checks you can do, for example
 	assert(get_tree().is_network_server())
 	assert(who in player_info) # Exists
@@ -123,7 +133,8 @@ remote func done_preconfiguring(who):
 		rpc("post_configure_game")
 
 remote func post_configure_game():
-	get_tree().set_pause(false)
+	#get_tree().set_pause(false)
+	
 	UI.Chat.log_success("Game Started!")
 # ==============================================================================
 

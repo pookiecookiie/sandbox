@@ -113,6 +113,18 @@ var commands = {
 		"label_color": "#FFF",
 		"text_color": "#0F0",
 		"command": funcref(self, "help") 
+	},
+	"create": {
+		"name": "create",
+		"label_color": "#555",
+		"text_color": "#FFF",
+		"command": funcref(self, "create") 
+	},
+	"tp": {
+		"name": "tp",
+		"label_color": "#555",
+		"text_color": "#FFF",
+		"command": funcref(self, "tp") 
 	}
 }
 
@@ -318,7 +330,6 @@ func chat(args:PoolStringArray):
 
 func network(args:PoolStringArray):
 	var prop = args[0]
-	var prop_args = get_prop_args(args)
 	
 	if prop.to_upper() == "ID":
 		var id = get_tree().get_network_unique_id()
@@ -342,14 +353,29 @@ func lan(args:PoolStringArray):
 	var prop = args[0]
 	var prop_args = get_prop_args(args)
 	
-	if prop.to_upper() == "CREATE":
-		log_command("Creating a server... " + str(prop_args), commands.lan)
+	if  prop.to_upper() == "CREATE":
+		if prop_args.size() == 2:
+			var port = prop_args[0]
+			var max_clients = prop_args[1]
+			Network.create_server(port, max_clients)
+			return
+			
+		# Create default server otherwise
+		Network.create_server()
+		
 
 	if prop.to_upper() == "JOIN":
-		log_command("Joining server... " + str(prop_args), commands.lan)
+		if prop_args.size() == 2:
+			var ip = prop_args[0]
+			var port = prop_args[1]
+			Network.join_server(ip, port)
+			return
+		
+		# Join default server
+		Network.join_server()
 
 	if prop.to_upper() == "LEAVE":
-		log_command("Leaving server... " + str(prop_args), commands.lan)
+		Network.leave_server()
 	
 
 func clear(_args:PoolStringArray):
@@ -385,6 +411,31 @@ func help(_args:PoolStringArray):
 > - the dev
 ================================================================================
 """, commands.help)
+
+
+func create(_args:PoolStringArray):
+	var world = load("res://scenes/world/World.tscn").instance()
+	get_node("/root").add_child(world)
+
+	# Load my player
+	var my_player = preload("res://scenes/world/Player/Player.tscn").instance()
+	get_node("/root/world/players").add_child(my_player)
+	
+	self.visible = false
+
+
+func tp(args:PoolStringArray):
+	var prop :String = args[0]
+	var prop_args = get_prop_args(args)
+	
+	if prop_args.size() == 3:
+		var x = prop_args[0]
+		var y = prop_args[1]
+		var z = prop_args[2]
+		
+		for player in get_node("/root/world/players").get_children():
+			if player.name == prop:
+				player.translation = Vector3(x, y, z)
 
 
 func run_command(raw:PoolStringArray):
