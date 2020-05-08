@@ -124,7 +124,7 @@ remote func done_preconfiguring(who):
 
 remote func post_configure_game():
 	get_tree().set_pause(false)
-	UI.Chat.__say("Game Started!")
+	UI.Chat.log_success("Game Started!")
 # ==============================================================================
 
 
@@ -133,7 +133,7 @@ remote func post_configure_game():
 # Signal Handlers
 
 func _player_connected(id):
-	UI.Chat.log_warning("Player Connected " + str(id))
+	UI.Chat.log_success("Player Connected " + str(id))
 	
 	player_info[id] = {"username": "User_" + str(id)}
 	pre_configure_game()
@@ -150,19 +150,19 @@ func _player_disconnected(id):
 
 
 func _connected_ok():
-	UI.Chat.log_warning("Connected OK.")
+	UI.Chat.log_success("Connected OK.")
 	
 	emit_signal("connected_to_server")
 
 
 func _connected_fail():
-	UI.Chat.log_warning("Connection failed.")
+	UI.Chat.log_error("Connection failed.")
 	
 	emit_signal("connection_failed")
 
 
 func _server_disconnected():
-	UI.Chat.log_warning("Server Disconnected.")
+	UI.Chat.log_error("Server Disconnected.")
 	
 	emit_signal("server_disconnected")
 

@@ -16,111 +16,104 @@ extends Control
 #
 # Nodes
 
-onready var ChatLog = $VBox/Panel/TextBox
-onready var InputLabel = $VBox/Panel/HBox/Player
-onready var InputField = $VBox/Panel/HBox/Input
+onready var ChatLog = $VBox/TextBox
+onready var InputLabel = $VBox/HBox/Player
+onready var InputField = $VBox/HBox/Input
 
 # ==============================================================================
 
 
 # ==============================================================================
 #
-# Error, Warning and Log message templates
+# Chat configuration
 
-const Error = {
-	"COMMAND_NOT_FOUND": "Command not found.",
-	"COMMAND_INVALID_ARGS": "Invalid Command Arguments.",
-	"COMMAND_INVALID_PERMISSION": "You don't have permission to execute this command.",
-	"INVALID_HEX": "Not a valid HEXADECIMAL number.",
-	"INVALID_IP": "Not a valid IP ADDRESS.",
+const chat_config = {
+	"name": "chat",
+	"label_color":"#AF0",
+	"username_color": "#AAA",
+	"text_color": "#FFF"
+
 }
 
-const Warning = {
-	"NOT_CONNECTED": "You are not connected to a network, try creating or hosting a game.",
-	"NO_CONNECTED_PEERS": "There are no peers connected on your network.",
-	"PEER_LAG": "Your peer's internet connection is LAGGIN quite a bit.",
-	"LAG": "Your internet connection is LAGGING quite a bit.",
-	"WTF": "uhhhh.... ok?"
+const command_config = {
+	"name": "cmd",
+	"label_color": "#FA0",
+	"text_color": "#FA5"
 }
 
-const Log = {
-	"NETWORK_ID": "Connected! Your network id is: ",
-	"NETWORK_PEERS": "Connected! Your network peers are: ",
-	"PING": "PING: ",
-	"TYPING_HISTORY": "Your Typing history is: ",
-	"CHAT_COLOR_CHANGED": "Chat color was changed!"
-}
-
-
-# ==============================================================================
-
-
-# ==============================================================================
-#
-# Chat types
-
-#	Takes care of styling and separating the chat visually for the user(me) ease
-
-const ChatTypes = {
-	"chat": {
-		"name": "chat",
-		"label_color":"#AF0",
-		"username_color": "#AAA",
-		"text_color": "#FFF"
+var commands = {
+	"warning": {
+		"name": "warning",
+		"label_color":"#FF0",
+		"text_color": "#FF5",
+		"command": funcref(self, "warning")
+	},
+	"error": {
+		"name": "error",
+		"label_color":"#F00",
+		"text_color": "#F55",
+		"command": funcref(self, "error")
+	},
+	"success": {
+		"name": "success",
+		"label_color": "#0F0",
+		"text_color": "#5F0",
+		"command": funcref(self, "success")
 	},
 	"command": {
-		"name": "cmd",
-		"label_color":"#FA0",
-		
-		# Commands
-		"warning": {
-			"name": "warning",
-			"label_color":"#FF0",
-			"text_color": "#FF5"
-		},
-		"error": {
-			"name": "error",
-			"label_color":"#F00",
-			"text_color": "#F55"
-		},
-		"server": {
-			"name": "server",
-			"label_color":"#F0A",
-			"text_color": "#F5A"
-		},
-		"say": {
-			"name": "say",
-			"label_color": "#FA0",
-			"text_color": "#FA5"
-		},
-		"set": {
-			"name": "set",
-			"label_color": "#0FA",
-			"text_color": "#5FA"
-		},
-		"clear": {
-			"name": "clear",
-			"label_color": "#FA0",
-			"text_color": "#FA5"
-		}
+		"name": "command",
+		"label_color": "#FA0",
+		"text_color": "#FA5",
+		"command": funcref(self, "command")
 	},
-}
-
-# ==============================================================================
-
-
-# ==============================================================================
-#
-# Chat Function things
-
-const ChatFunctions = {
-	"server": "server",
-	"error": "error",
-	"warning": "warning",
-	"say": "say",
-	"set": "set",
-	"clear": "clear"
-
+	"server": {
+		"name": "server",
+		"label_color":"#F0A",
+		"text_color": "#F5A",
+		"command": funcref(self, "server")
+	},
+	"say": {
+		"name": "say",
+		"label_color": "#FA0",
+		"text_color": "#FA5",
+		"command": funcref(self, "say")
+	},
+	"history": {
+		"name": "history",
+		"label_color": "#FA0",
+		"text_color": "#FA5",
+		"command": funcref(self, "history")
+	},
+	"chat": {
+		"name": "chat",
+		"label_color": "#0FA",
+		"text_color": "#5FA",
+		"command": funcref(self, "chat")
+	},
+	"network": {
+		"name": "network",
+		"label_color": "#0FA",
+		"text_color": "#5FA",
+		"command": funcref(self, "network") 
+	},
+	"clear": {
+		"name": "clear",
+		"label_color": "#FA0",
+		"text_color": "#FA5",
+		"command": funcref(self, "clear")
+	},
+	"lan": {
+		"name": "lan",
+		"label_color": "#0FA",
+		"text_color": "#5FA",
+		"command": funcref(self, "lan") 
+	},
+	"help": {
+		"name": "help",
+		"label_color": "#FFF",
+		"text_color": "#0F0",
+		"command": funcref(self, "help") 
+	}
 }
 
 # ==============================================================================
@@ -153,17 +146,17 @@ func _ready():
 	InputLabel.text = "["+username+"]"
 	
 	ChatLog.scroll_following = true
-
+	log_command("Type '/help' for help.", commands.help)
 
 func _input(event:InputEvent):
-	if event.is_action_pressed("ui_accept"):
+	if event.is_action_pressed("open_chat"):
 		InputField.grab_focus()
 	
 	
-	if event.is_action_pressed("ui_cancel"):
+	if event.is_action_pressed("close_chat"):
 		InputField.release_focus()
 	
-	
+	# Go back on typing history 
 	if event.is_action_pressed("ui_up"):
 		print("") # for some reason without print here it doesnt work??
 		var previous = chat_log.now - 1
@@ -171,7 +164,7 @@ func _input(event:InputEvent):
 			InputField.text = chat_log.type_history[previous]
 			chat_log.now = previous
 	
-	
+	# Go forward on typing history
 	if event.is_action_pressed("ui_down"):
 		print("")
 		var next = chat_log.now + 1
@@ -212,159 +205,200 @@ func add_text(text, color):
 	ChatLog.bbcode_text += "[/color]"
 
 
-func add_log(text, username=null):
-	ChatLog.bbcode_text += "\n "
-	
-	add_label(ChatTypes.chat.name.to_upper(), ChatTypes.chat.label_color)
-	
-	if username:
-		add_label(username, ChatTypes.chat.username_color, true)
-	add_text(text, ChatTypes.chat.text_color)
-	
-	if username:
-		add_history(text)
-
-
-func add_command(text, chat_command):
-	if chat_command == ChatTypes.command.error:
-		self.visible = true
-	
-	var command = ChatTypes.command[chat_command.name]
-	
-	ChatLog.bbcode_text += "\n "
-	add_label(ChatTypes.command.name.to_upper(), ChatTypes.command.label_color)
-	add_label(command.name.to_upper(), command.label_color, true)
-	add_text(text, command.text_color)
-
-
-func run_chat_function(raw:PoolStringArray):
-	var function = raw[0]
-	
-	raw.remove(0)
-	var params = raw
-	
-	if function == ChatFunctions.server:
-		#TODO:
-		#
-		#Only callable if this is the server
-		
-		log_server(params.join(" "))
-		return
-	
-	
-	if function == ChatFunctions.say:
-		__say(params.join(" "))
-		return
-	
-	if function == ChatFunctions.set:
-		__set(params)
-		return
-	
-	if function == ChatFunctions.clear:
-		clear_log()
-		return
-	
-	log_error(Error.COMMAND_NOT_FOUND)
-	
-
 # ==============================================================================
 
 
 # ==============================================================================
 #
-# Chat Functions
+# Utilities
 
-# UTILITY
-func log_server(msg):
-	add_command(msg, ChatTypes.command.server)
+func log_command(args, command_name=commands.command):
+	send_command(args, command_name)
 
-func log_error(msg):
-	add_command(msg, ChatTypes.command.error)
+func log_error(args):
+	send_command(args, commands.error)
 
-func log_warning(msg):
-	add_command(msg, ChatTypes.command.warning)
+func log_warning(args):
+	send_command(args, commands.warning)
 
+func log_success(args):
+	send_command(args, commands.success)
 
-func concatenate_strings(strings, separator=" =>", wrapper=["[ ", " ]"]):
-	# Refactor later on, but works fine now
-	var string : String = ""
-	
-	for i in range(strings.size()):
-		if i < strings.size()-1:
-			string += strings[i]
-			string += separator
-		else:
-			string += wrapper[0]
-			string += strings[i]
-			string += wrapper[1]
-	
-	return string
+func log_server(args):
+	send_command(args, commands.server)
+
+func log_say(args):
+	send_command(args, commands.say)
 
 
 func toggle():
 	self.visible = !self.visible
 
-# COMMANDS
-func __say(msg):
-	if msg == "history":
-		var history = chat_log.type_history
-		__say(Log.TYPING_HISTORY + str(history))
-		return
-	
-	if msg == "networkID":
-		var id = get_tree().get_network_unique_id()
-		if id == 0:
-			log_warning(Warning.NOT_CONNECTED)
-			return
-		__say(Log.NETWORK_ID + '"'+str(id)+'"')
-		return
-	
-	if msg == "networkPeers":
-		var peers = get_tree().get_network_connected_peers()
-		if peers.empty():
-			log_warning("There are no peers connected to your network!")
-			return
-		__say(Log.NETWORK_PEERS + " " + str(peers))
-		return
-	
-	
-	add_command(msg, ChatTypes.command.say)
+func open():
+	self.visible = true
 
+func close():
+	self.visible = false
 
-func __set(args):
-	var prop : String = args[0]
-	var prop_args : Array = []
+func get_prop_args(args):
+	var prop_args = []
 	
-	# Separate prop from other args
-	# Kind of argument nesting weird thing going on
 	for arg in args:
-		if arg != prop:
+		if arg != args[0]:
 			prop_args.append(arg)
+	return prop_args
+
+
+func send_message(text, _username=null):
+	ChatLog.bbcode_text += "\n "
 	
+	add_label(chat_config.name.to_upper(), chat_config.label_color)
 	
-	if prop == "color":
+	if _username:
+		add_label(username, chat_config.username_color, true)
+	add_text(text, chat_config.text_color)
+	
+	if _username:
+		add_history(text)
+
+
+# Log the command output to the 
+func send_command(text, chat_command):
+	if chat_command == commands.error:
+		self.open()
+	
+	var command_type = commands[chat_command.name]
+	
+	ChatLog.bbcode_text += "\n "
+	add_label(command_config.name.to_upper(), command_config.label_color)
+	add_label(command_type.name.to_upper(), command_type.label_color, true)
+	add_text(text, command_type.text_color)
+
+
+func command(args:PoolStringArray):
+	send_command(args.join(" "), commands.command_log)
+
+func error(args:PoolStringArray):
+	send_command(args.join(" "), commands.error)
+
+func warning(args:PoolStringArray):
+	send_command(args.join(" "), commands.warning)
+
+func success(args:PoolStringArray):
+	send_command(args.join(" "), commands.success)
+
+func server(args:PoolStringArray):
+	send_command(args.join(" "), commands.server)
+
+func say(args:PoolStringArray):
+	send_command(args.join(" "), commands.say)
+
+
+func history(_args:PoolStringArray):
+	var history = chat_log.type_history
+	log_command("Your typing history: " + str(history), commands.history)
+
+
+func chat(args:PoolStringArray):
+	var prop = args[0]
+	var prop_args = get_prop_args(args)
+	
+	if prop.to_upper() == "COLOR":
 		if prop_args[0].is_valid_hex_number():
-			ChatTypes.chat.text_color = "#"+prop_args[0]
-			
-			__say(Log.CHAT_COLOR_CHANGED)
+			chat_config.text_color = "#"+prop_args[0]
+
+			log_command("Chat Color has changed!", commands.chat)
 			return
 		else:
-			var err = concatenate_strings([
-				Error.COMMAND_INVALID_ARGS,
-				Error.INVALID_HEX,
-				prop_args[0]
-			])
-			
-			log_error(err)
+			log_error("Invalid arguments")
 			return
 	
-	log_error(Error.COMMAND_NOT_FOUND)
+	log_error("Command not found.")
 
 
-func clear_log():
+func network(args:PoolStringArray):
+	var prop = args[0]
+	var prop_args = get_prop_args(args)
+	
+	if prop.to_upper() == "ID":
+		var id = get_tree().get_network_unique_id()
+		
+		if id == 0:
+			log_warning("You are not connected to a network!")
+			return
+		log_command("Your network id is: " + '"'+str(id)+'"', commands.network)
+		return
+	
+	if prop.to_upper() == "PEERS":
+		var peers = get_tree().get_network_connected_peers()
+		if peers.empty():
+			log_warning("There are no peers!")
+			return
+		log_command("Connected peers: " + str(peers), commands.network)
+		return
+
+
+func lan(args:PoolStringArray):
+	var prop = args[0]
+	var prop_args = get_prop_args(args)
+	
+	if prop.to_upper() == "CREATE":
+		log_command("Creating a server... " + str(prop_args), commands.lan)
+
+	if prop.to_upper() == "JOIN":
+		log_command("Joining server... " + str(prop_args), commands.lan)
+
+	if prop.to_upper() == "LEAVE":
+		log_command("Leaving server... " + str(prop_args), commands.lan)
+	
+
+func clear(_args:PoolStringArray):
 	ChatLog.bbcode_text = ""
-	add_log("Chat cleared!", null)
+	log_command("Chat cleared!", commands.clear)
 
+
+func help(_args:PoolStringArray):
+	log_command("""
+========
+>> HELP
+================================================================================
+
+@ COMMANDS
+
+> /help >> shows this help thing
+> /say (MESSAGE) >> logs a message (MESSAGE) to the chat.
+> /clear >> clears the chat.
+> /history >> shows your typing history. (up to 25 messages or commands)
+> /chat color (HEX_COLOR) >> changes the color of the CHAT.
+> /network id >> shows your Network's Unique Id.
+> /network peers >> shows a list of your peers. (if any)
+
+
+@ WIP
+
+> /lan create >> creates a LAN server on the default port. (42069)
+> /lan create (PORT) >> creates a LAN server on port (PORT).
+> /lan join (IP) (PORT) >> joins a LAN server on (IP):(PORT).
+> /lan leave >> leaves the currently connected server.
+
+> If you think a command is missing, please contact me at github >> https://github.com/pookiecookiie/sandbox/issues
+> - the dev
+================================================================================
+""", commands.help)
+
+
+func run_command(raw:PoolStringArray):
+	var command_name = raw[0]
+	
+	raw.remove(0)
+	var params = raw
+	
+	if !commands.has(command_name):
+		log_error(str(command_name) + " command not found!")
+		return
+	
+	commands[command_name].command.call_func(params)
+	
 
 # ==============================================================================
 
@@ -375,18 +409,17 @@ func clear_log():
 
 func _on_text_entered(text:String):
 	if !InputField.text.empty():
-		add_log(text, username)
+		send_message(text, username)
 	InputField.text = ""
 	
 
 	if text.begins_with("/"):
-		# Get rid of the slash
+		# Get rid of the slash and try to run a chat function
 		text.erase(0, 1)
 		
 		var splitted : PoolStringArray = text.split(" ")
-		run_chat_function(splitted)
+		run_command(splitted)
 		InputField.text = ""
-		return
 
 # ==============================================================================
 
