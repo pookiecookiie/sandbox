@@ -125,6 +125,24 @@ var commands = {
 		"label_color": "#555",
 		"text_color": "#FFF",
 		"command": funcref(self, "tp") 
+	},
+	"auth": {
+		"name": "auth",
+		"label_color": "#555",
+		"text_color": "#FFF",
+		"command": funcref(self, "auth") 
+	},
+	"socket": {
+		"name": "socket",
+		"label_color": "#555",
+		"text_color": "#FFF",
+		"command": funcref(self, "socket") 
+	},
+	"send": {
+		"name": "send",
+		"label_color": "#555",
+		"text_color": "#FFF",
+		"command": funcref(self, "send") 
 	}
 }
 
@@ -159,6 +177,7 @@ func _ready():
 	
 	ChatLog.scroll_following = true
 	log_command("Type '/help' for help.", commands.help)
+
 
 func _input(event:InputEvent):
 	if event.is_action_pressed("open_chat"):
@@ -239,6 +258,9 @@ func log_success(args):
 func log_server(args):
 	send_command(args, commands.server)
 
+func log_help(args):
+	send_command(args, commands.help)
+
 func log_say(args):
 	send_command(args, commands.say)
 
@@ -272,6 +294,7 @@ func send_message(text, _username=null):
 	
 	if _username:
 		add_history(text)
+
 
 
 # Log the command output to the 
@@ -347,6 +370,7 @@ func network(args:PoolStringArray):
 			return
 		log_command("Connected peers: " + str(peers), commands.network)
 		return
+		
 
 
 func lan(args:PoolStringArray):
@@ -362,8 +386,7 @@ func lan(args:PoolStringArray):
 			
 		# Create default server otherwise
 		Network.create_server()
-		
-
+	
 	if prop.to_upper() == "JOIN":
 		if prop_args.size() == 2:
 			var ip = prop_args[0]
@@ -377,6 +400,7 @@ func lan(args:PoolStringArray):
 	if prop.to_upper() == "LEAVE":
 		Network.leave_server()
 	
+
 
 func clear(_args:PoolStringArray):
 	ChatLog.bbcode_text = ""
@@ -436,6 +460,55 @@ func tp(args:PoolStringArray):
 		for player in get_node("/root/world/players").get_children():
 			if player.name == prop:
 				player.translation = Vector3(x, y, z)
+
+
+func socket(args:PoolStringArray):
+	if args.size() == 0:
+		Network.connect_socket()
+		return
+	
+	var prop = args[0]
+	
+	if prop.to_upper() == "INFO":
+		if !Network.current_channel:
+			UI.Chat.log_error("Not connected to a channel")
+			return
+		
+		UI.Chat.log_help("Channel info:")
+		UI.Chat.log_help(str(Network.current_channel.room_name))
+		UI.Chat.log_help(str(Network.current_channel.presences))
+
+func auth(args:PoolStringArray):
+	var prop = args[0]
+	
+	if prop.to_upper() == "SIGN":
+		if args.size() == 2:
+			UI.Chat.log_success("work")
+			Network.sign_in()
+			return
+
+		if args.size() < 4:
+			log_error("Please use: /auth sign in/up email password [username]")
+			return
+		
+		var email = args[2]
+		var password = args[3]
+		var username
+		if args.size() == 5:
+			username = args[4]
+		
+		if args[1].to_upper() == "IN":
+			Network.sign_in(email, password)
+			
+		if args[1].to_upper() == "UP":
+			if username:
+				Network.sign_up(email, password, username)
+			else:
+				log_error("uh... username pls")
+
+
+func send(args:PoolStringArray):
+	Network.send_message(args.join(" "))
 
 
 func run_command(raw:PoolStringArray):

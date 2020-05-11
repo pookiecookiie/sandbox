@@ -4,183 +4,119 @@ extends Node
 #
 # Member Variables
 
-const DEFAULT_IP : String = "127.0.0.1"
-const DEFAULT_PORT : int = 42069
-const MAX_CLIENTS : int = 5
+var current_client : NakamaClient = null
+var current_session : NakamaSession = null
+var current_socket : NakamaSocket = null
+var current_channel : NakamaRTAPI.Channel = null
 
-var servers = {}
-var player_info = {}
+var current_room : String = "testing"
 
-# ==============================================================================
-
-
-# ==============================================================================
-#
-# Network Signals
-
-signal player_connected
-signal player_disconnected
-signal connected_to_server
-signal connection_failed
-signal server_disconnected
-
-# ==============================================================================
+var data : Dictionary = {}
 
 
-# ==============================================================================
-#
-# Godot Functions
-
-func _ready():
-	get_tree().connect("network_peer_connected", self, "_player_connected")
-	get_tree().connect("network_peer_disconnected", self, "_player_disconnected")
-	get_tree().connect("connected_to_server", self, "_connected_ok")
-	get_tree().connect("connection_failed", self, "_connected_fail")
-	get_tree().connect("server_disconnected", self, "_server_disconnected")
-
-# ==============================================================================
+func _exit_tree():
+	if current_socket:
+		current_socket.close()
 
 
-# ==============================================================================
-#
-# Methods
-
-func create_server(port=DEFAULT_PORT, max_clients=MAX_CLIENTS):
-	var peer = NetworkedMultiplayerENet.new()
-	var err = peer.create_server(port, max_clients)
-	get_tree().network_peer = peer
+func connect_socket():
+	UI.Chat.log_say(str(current_client))
+	current_socket = Nakama.create_socket_from(current_client)
 	
-	if err != OK:
-		UI.Chat.log_error("Could not create server on port " + str(port) + " [ERR "+str(err)+"]")
-	else:
-		UI.Chat.log_success("Server created on port: [" + str(port) + "]")
+	var connected : NakamaAsyncResult = yield(current_socket.connect_async(current_session), "completed")
+	if connected.is_exception():
+		print("An error occured: %s" % connected)
+		return
+	UI.Chat.log_success("Socket connected.")
 	
-	return err
-
-
-func join_server(ip=DEFAULT_IP, port=DEFAULT_PORT):
-	var peer = NetworkedMultiplayerENet.new()
-	var err = peer.create_client(ip, port)
-	get_tree().network_peer = peer
+	current_socket.connect("received_channel_message", self, "_receive_message")
 	
-	if err != OK:
-		UI.Chat.log_error("Could not join server " + ip+":"+str(port) + " [ERR "+str(err)+"]")
-	else:
-		UI.Chat.log_success("Joining server... " + ip+":"+str(port))
-	return err
-
-
-func leave_server():
-	get_tree().network_peer = null
-
-
-func add_server(server:Dictionary):
-	servers[server.name] = server
-
-
-func remove_server(server:Dictionary):
-	servers.erase(server.name)
-
-
-func edit_server(server, edited_server:Dictionary):
-	servers[server.name] = edited_server
-
-
-# ==============================================================================
-#
-# Networking functions 
-
-remote func pre_configure_game():
-	#get_tree().set_pause(true)
 	
-	var selfPeerID = get_tree().get_network_unique_id()
-	
-	player_info[selfPeerID] = {
-		"username": "User_"+str(selfPeerID)
+	current_channel = yield(current_socket.join_chat_async(current_room, NakamaSocket.ChannelType.Room), "completed")
+	if current_channel.is_exception():
+		UI.Chat.log_error("An error occured: %s" % current_channel)
+		return
+
+
+func _receive_message(msg):
+	#UI.Chat.log_success("Received message!")
+	#UI.Chat.log_success(JSON.parse(msg.content).result.msg)
+	UI.Chat.send_message(JSON.parse(msg.content).result.msg, JSON.parse(msg.content).result.sender)
+
+
+func send_message(msg:String):
+	var data = {
+		"sender": "someone",
+		"msg": msg
 	}
 	
-	# Load world
-	var world = load("res://scenes/world/World.tscn").instance()
-	get_node("/root").add_child(world)
-
-	# Load my player
-	var my_player = preload("res://scenes/world/Player/Player.tscn").instance()
-	my_player.set_name(str(selfPeerID))
-	my_player.set_network_master(selfPeerID) # Will be explained later
-	get_node("/root/world/players").add_child(my_player)
-
-	# Load other players
-	for p in player_info:
-		var player = preload("res://scenes/world/Player/Player.tscn").instance()
-		player.set_name(str(p))
-		player.set_network_master(p) # Will be explained later
-		get_node("/root/world/players").add_child(player)
-
-	# Tell server (remember, server is always ID=1) that this peer is done pre-configuring.
-	rpc_id(1, "done_preconfiguring", selfPeerID)
-
-var players_done = []
-sync func done_preconfiguring(who):
+	var message_ack : NakamaRTAPI.ChannelMessageAck = yield(current_socket.write_chat_message_async(current_channel.id, data), "completed")
+	if message_ack.is_exception():
+		print("An error occured: %s" % message_ack)
+		return
+	#UI.Chat.log_success("Sent message %s" % [message_ack])
 	
-	# Here are some checks you can do, for example
-	assert(get_tree().is_network_server())
-	assert(who in player_info) # Exists
-	assert(not who in players_done) # Was not added yet
 
-	players_done.append(who)
 
-	if players_done.size() == player_info.size():
-		rpc("post_configure_game")
-
-remote func post_configure_game():
-	#get_tree().set_pause(false)
+func sign_up(email, password, username):
+	var STORE_FILE = "user://store.ini"
+	var STORE_SECTION = "nakama"
+	var STORE_KEY = "session"
 	
-	UI.Chat.log_success("Game Started!")
-# ==============================================================================
-
-
-# ==============================================================================
-#
-# Signal Handlers
-
-func _player_connected(id):
-	UI.Chat.log_success("Player Connected " + str(id))
+	current_client = Nakama.create_client("defaultkey", "127.0.0.1", 7350, "http")
 	
-	player_info[id] = {"username": "User_" + str(id)}
-	pre_configure_game()
+	var cfg = ConfigFile.new()
+	cfg.load(STORE_FILE)
+	var token = cfg.get_value(STORE_SECTION, STORE_KEY, "")
 	
-	emit_signal("player_connected", id)
-
-
-func _player_disconnected(id):
-	UI.Chat.log_warning("Player Disconnected " + str(id))
+	if token:
+		var restored_session = NakamaClient.restore_session(token)
+		if restored_session.valid and not restored_session.expired:
+			current_session = restored_session
+			UI.Chat.log_success("Session restored.")
+			return
 	
-	player_info.erase(id)
-
-	emit_signal("player_disconnected", id)
-
-
-func _connected_ok():
-	UI.Chat.log_success("Connected OK.")
+	var deviceid = OS.get_unique_id() # This is not supported by Godot in HTML5, use a different way to generate an id, or a different authentication option.
+	current_session = yield(current_client.authenticate_email_async(email, password, username, true), "completed")
 	
-	emit_signal("connected_to_server")
-
-
-func _connected_fail():
-	UI.Chat.log_error("Connection failed.")
+	if not current_session.is_exception():
+		cfg.set_value(STORE_SECTION, STORE_KEY, current_session.token)
+		cfg.save(STORE_FILE)
+	else:
+		UI.Chat.log_error("Something went wrong when creating a session (SIGN UP)")
 	
-	emit_signal("connection_failed")
+	UI.Chat.log_success("Session OK")
+	connect_socket()
 
 
-func _server_disconnected():
-	UI.Chat.log_error("Server Disconnected.")
+func sign_in(email="test@email.com", password="420potato"):
+	var STORE_FILE = "user://store.ini"
+	var STORE_SECTION = "nakama"
+	var STORE_KEY = "session"
 	
-	emit_signal("server_disconnected")
-
-
-# ==============================================================================
-
-
-
+	
+	current_client = Nakama.create_client("defaultkey", "127.0.0.1", 7350, "http")
+	
+	var cfg = ConfigFile.new()
+	cfg.load(STORE_FILE)
+	var token = cfg.get_value(STORE_SECTION, STORE_KEY, "")
+	
+	if token:
+		var restored_session = NakamaClient.restore_session(token)
+		if restored_session.valid and not restored_session.expired:
+			current_session = restored_session
+			UI.Chat.log_success("Session restored.")
+			return
+	
+	var deviceid = OS.get_unique_id() # This is not supported by Godot in HTML5, use a different way to generate an id, or a different authentication option.
+	current_session = yield(current_client.authenticate_email_async(email, password), "completed")
+	
+	if not current_session.is_exception():
+		cfg.set_value(STORE_SECTION, STORE_KEY, current_session.token)
+		cfg.save(STORE_FILE)
+	else:
+		UI.Chat.log_error("Something went wrong when creating a session (SIGN UP)")
+	
+	UI.Chat.log_success("Session OK")
 
 
