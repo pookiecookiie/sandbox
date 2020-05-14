@@ -59,15 +59,18 @@ func send_message(msg:String):
 		UI.Chat.log_error("An error occured: %s" % message_ack)
 		return
 
-	
 
+func create_client(ip="127.0.0.1", port=0, key="defaultkey"):
+	client = Nakama.create_client(key, ip, port)
+	if client:
+		UI.Chat.log_success("Seems like it worked!")
 
 func auth(email, password, username=null):
-	client = Nakama.create_client("defaultkey", "51d1b334.ngrok.io", 0)
-	
 	if username:
+		print("Signing up")
 		session = yield(client.authenticate_email_async(email, password, username), "completed")
 	else:
+		print("Signing in")
 		session = yield(client.authenticate_email_async(email, password), "completed")
 
 	if not session.is_exception():
@@ -76,8 +79,7 @@ func auth(email, password, username=null):
 	else:
 		UI.Chat.log_error("Something went wrong when creating a session " + str(session))
 		return
-	
-	
+
 
 
 

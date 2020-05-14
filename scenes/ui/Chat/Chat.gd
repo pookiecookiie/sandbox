@@ -170,6 +170,12 @@ var Commands = {
 		"name": "help",
 		"color": DARK_YELLOW,
 		"command": funcref(self, "command_send")
+	},
+	
+	"client": {
+		"name": "client",
+		"color": YELLOW,
+		"command": funcref(self, "command_client")
 	}
 }
 
@@ -394,6 +400,33 @@ func command_auth(args:PoolStringArray):
 		Network.auth(email, password)
 		return
 	
+	if args.size() == 3:
+		var user = args[2]
+		Network.auth(email, password, user)
+		return
+	
+	log_error("Invalid arguments")
+
+func command_client(args:PoolStringArray):
+	if args.size() == 1:
+		var ip = args[0]
+		Network.create_client(ip)
+		return
+	
+	if args.size() == 2:
+		var ip = args[0]
+		var port = args[1]
+		Network.create_client(ip, port)
+		return
+	
+	if args.size() == 3:
+		var ip = args[0]
+		var port = args[1]
+		var key = args[2]
+		Network.create_client(ip, port, key)
+		return
+	
+	log_error("Invalid arguments")
 
 
 func command_send(args:PoolStringArray):

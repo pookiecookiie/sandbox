@@ -13,6 +13,6 @@ func _input(event):
 		Chat.close()
 	
 	if event.is_action_pressed("clear_console"):
-		Chat.clear_log()
+		Chat.clear()
 
 
