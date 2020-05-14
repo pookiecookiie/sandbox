@@ -43,7 +43,11 @@ func _init(p_adapter : NakamaHTTPAdapter,
 	port = p_port
 	timeout = p_timeout
 	logger = p_adapter.logger
-	_api_client = NakamaAPI.ApiClient.new(scheme + "://" + host + ":" + str(port), p_adapter, NakamaAPI, p_timeout)
+	
+	if port == 0:
+		_api_client = NakamaAPI.ApiClient.new(scheme + "://" + host, p_adapter, NakamaAPI, p_timeout)
+	else:
+		_api_client = NakamaAPI.ApiClient.new(scheme + "://" + host + ":" + str(port), p_adapter, NakamaAPI, p_timeout)
 
 # Restore a session from the auth token.
 # A `null` or empty authentication token will return `null`.

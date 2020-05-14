@@ -63,7 +63,7 @@ func send_message(msg:String):
 
 
 func auth(email, password, username=null):
-	current_client = Nakama.create_client("defaultkey", "192.168.99.100", 7350, "http")
+	current_client = Nakama.create_client("defaultkey", "[ngrok-thing].ngrok.io", 0)
 	
 	if username:
 		current_session = yield(current_client.authenticate_email_async(email, password, username), "completed")
@@ -75,7 +75,7 @@ func auth(email, password, username=null):
 		UI.Chat.log_success("Session OK")
 		UI.Chat.set_username(current_session.username)
 	else:
-		UI.Chat.log_error("Something went wrong when creating a session (SIGN UP)")
+		UI.Chat.log_error("Something went wrong when creating a session " + str(current_session))
 		return
 	
 	
