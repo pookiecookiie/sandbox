@@ -105,8 +105,8 @@ config/icon="res://assets/ui/icons/icon.png"
 [autoload]
 
 Nakama="*res://nakama/addons/com.heroiclabs.nakama/Nakama.gd"
-UI="*res://scripts/UI.gd"
-Network="*res://scripts/Network.gd"
+UI="*res://src/singletons/UI.gd"
+Network="*res://src/singletons/Network.gd"
 
 [input]
 
