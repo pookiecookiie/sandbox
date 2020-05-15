@@ -44,7 +44,7 @@ func _init(p_adapter : NakamaHTTPAdapter,
 	timeout = p_timeout
 	logger = p_adapter.logger
 	
-	if port == 0:
+	if port == -1:
 		_api_client = NakamaAPI.ApiClient.new(scheme + "://" + host, p_adapter, NakamaAPI, p_timeout)
 	else:
 		_api_client = NakamaAPI.ApiClient.new(scheme + "://" + host + ":" + str(port), p_adapter, NakamaAPI, p_timeout)
