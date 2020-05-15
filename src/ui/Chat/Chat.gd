@@ -15,96 +15,105 @@ onready var InputField = $VBox/HBox/Input
 
 
 # Colors
+const RED = "#F00"
+const GREEN = "#0F0"
+const BLUE = "#00F"
+const YELLOW = "#FF0"
+const PINK = "#F0F"
 const BLACK = "#000"
-const DARK_GREY = "#555"
+const GREY = "#AAA"
+const WHITE = "#FFF"
 
-const DARK_RED = "#a00"
-const RED = "#f00"
-const LIGHT_RED = "#f55"
+const DARK = "#363537"
 
-const DARK_GREEN = "#0a0"
-const GREEN = "#0f0"
-const LIGHT_GREEN = "#5f5"
+const RAJAH = "#FCAB64"
+const ORANGE_PEEL = "#FF9F1C"
+const TIFFANY_BLUE = "#2EC4B6"
+const CG_BLUE = "#2978A0"
+const BEAU_BLUE = "#C6E0FF"
+const SCREAMING_GREEN = "#6bf178"
 
-const DARK_BLUE = "#00a"
-const BLUE = "#00f"
-const LIGHT_BLUE = "#0ff"
 
-const DARK_YELLOW = "#aa0"
-const YELLOW = "#ff0"
-const LIGHT_YELLOW = "#ff5"
-
-const PURPLE = "#a0f"
-const PINK = "#f0f"
-
-const GREY = "#aaa"
-const WHITE = "#fff"
+const HELP = {
+	"pages": [
+		("\n========\n"+
+		"    HELP    |\n"+
+		"================================================================================\n\n"+
+		"@ COMMANDS\n\n"+
+		">    /help  >>  shows this help thing\n"+
+		">    /say  [MESSAGE]  >>  logs a message '[message]' to the chat.\n"+
+		">    /clear  >>  clears the chat.\n"+
+		">    /history  >>  shows your typing history. (up to 25 messages or commands).\n"+
+		">    /client  [IP]  [PORT]  [SERVER_KEY]  >>  creates a client.\n"+
+		">    /auth  [EMAIL]  [PASSWORD]  [USERNAME]  >>  Registers or logs an existing user.\n"+
+		">    /socket  start  >>  creates a socket from this client.\n"+
+		">    /socket  create  channel  >>  creates a channel using this socket. (realtime chat)\n\n"+
+		">    If you think a command is missing, or would like to add something yourself\n"+
+		">    this project is opensource  >>  https://github.com/pookiecookiie/sandbox\n"+
+		">    - the dev\n\n"+
+		"================================================================================\n")
+	]
+}
 
 
 var Types = {
 	"none": null,
 	"chat": {
 		"name": "chat",
-		"color": GREEN,
-		"owner_color": GREY, # Command or username label/TAG
+		"color": SCREAMING_GREEN,
+		"owner_color": TIFFANY_BLUE, # Command or username label/TAG
 		"text_color": WHITE,
-		"text_bg_color": DARK_GREY,
+		"text_bg_color": DARK,
 
 	},
 	"debug": {
 		"name": "debug",
-		"color": GREEN,
+		"color": BLUE,
 		"text_color": WHITE,
-		"text_bg_color": DARK_GREY,
+		"text_bg_color": DARK,
 	},
 	"server": {
 		"name": "server",
-		"color": GREEN,
+		"color": PINK,
 		"text_color": WHITE,
-		"text_bg_color": DARK_GREY,
+		"text_bg_color": DARK,
 	},
 	"info": {
 		"name": "info",
-		"color": GREEN,
+		"color": BEAU_BLUE,
 		"text_color": WHITE,
-		"text_bg_color": DARK_GREY,
+		"text_bg_color": DARK,
 	},
 	"help": {
 		"name": "help",
-		"color": GREEN,
+		"color": CG_BLUE,
 		"text_color": WHITE,
-		"text_bg_color": DARK_GREY,
+		"text_bg_color": DARK,
 	},
 	"command": {
-		"name": "chat",
-		"color": GREEN,
+		"name": "command",
+		"color": ORANGE_PEEL,
 		"text_color": WHITE,
-		"text_bg_color": DARK_GREY,
+		"text_bg_color": DARK,
 	},
 	"success": {
 		"name": "success",
 		"color": GREEN,
 		"text_color": WHITE,
-		"text_bg_color": DARK_GREY,
+		"text_bg_color": DARK,
 	},
 	"warning": {
 		"name": "warning",
-		"color": GREEN,
+		"color": YELLOW,
 		"text_color": WHITE,
-		"text_bg_color": DARK_GREY,
+		"text_bg_color": DARK,
 	},
 	"error": {
 		"name": "error",
-		"color": GREEN,
+		"color": RED,
 		"text_color": WHITE,
-		"text_bg_color": DARK_GREY,
-	},
-	"say": {
-		"name": "say",
-		"color": GREEN,
-		"text_color": WHITE,
-		"text_bg_color": DARK_GREY,
-	},
+		"text_bg_color": DARK,
+	}
 }
 
 
@@ -112,60 +121,43 @@ var Commands = {
 	"none": null,
 	"help": {
 		"name": "help",
-		"color": DARK_YELLOW,
+		"color": RAJAH,
 		"command": funcref(self, "command_help")
 	},
 	
-	"info": {
-		"name": "help",
-		"color": DARK_YELLOW,
-		"command": funcref(self, "command_info")
-	},
-	
 	"say": {
-		"name": "help",
-		"color": DARK_YELLOW,
+		"name": "say",
+		"color": RAJAH,
 		"command": funcref(self, "command_say")
 	},
 	
-	"server":{
-		"name": "help",
-		"color": DARK_YELLOW,
-		"command": funcref(self, "command_server")
-	},
-	
 	"history": {
-		"name": "help",
-		"color": DARK_YELLOW,
+		"name": "history",
+		"color": RAJAH,
 		"command": funcref(self, "command_history")
 	},
 	
 	"clear": {
-		"name": "help",
-		"color": DARK_YELLOW,
+		"name": "clear",
+		"color": RAJAH,
 		"command": funcref(self, "command_clear")
 	},
 	
 	"auth":{
-		"name": "help",
-		"color": DARK_YELLOW,
+		"name": "auth",
+		"color": RAJAH,
 		"command": funcref(self, "command_auth")
 	},
 	
 	"socket": {
-		"name": "help",
-		"color": DARK_YELLOW,
+		"name": "socket",
+		"color": RAJAH,
 		"command": funcref(self, "command_socket")
 	},
 	
-	"send": {
-		"name": "help",
-		"color": DARK_YELLOW,
-		"command": funcref(self, "command_send")
-	},
 	"client": {
 		"name": "client",
-		"color": DARK_YELLOW,
+		"color": RAJAH,
 		"command": funcref(self, "command_client")
 	}
 }
@@ -184,6 +176,7 @@ var username : String = "guest"
 
 # Godot functions
 func _ready():
+# warning-ignore:return_value_discarded
 	Network.connect("received_channel_message", self, "_receive_message")
 	
 	InputField.connect("text_entered", self, "_on_text_entered")
@@ -193,6 +186,14 @@ func _ready():
 	ChatLog.scroll_following = true
 	
 	log_info("Type '/help' for help.")
+	
+	
+#	log_error("EXAMPLE ERROR")
+#	log_warning("EXAMPLE WARNING")
+#	log_success("EXAMPLE SUCCESS")
+#	log_help("EXAMPLE HELP")
+#	log_server("EXAMPLE SERVER")
+#	command_say(["EXAMPLE SAY"])
 
 
 func _input(event:InputEvent):
@@ -239,10 +240,15 @@ func set_username(new)->void:
 	InputLabel.text = "["+username+"]"
 
 
-func debug(text, type=Types.debug)->void:
+func debug(text, type=Types.debug, command=Commands.none)->void:
 	ChatLog.bbcode_text += "\n "
 	
-	_add_label(type.name, type.color)
+	if command:
+		_add_label(type.name, type.color)
+		_add_label(command.name, command.color, true)
+	else:
+		_add_label(type.name, type.color, true)
+		
 	_add_text(text, type.text_color)
 
 
@@ -303,19 +309,16 @@ func log_error(args)->void:
 	debug(args, Types.error)
 
 
-func log_say(args)->void:
-	debug(args, Types.say)
-
-
 
 # Commands
 func command_say(args:PoolStringArray)->void:
-	log_say(args.join(" "))
+	debug(args.join(" "), Types.command, Commands.say)
 
 
 func command_history(_args:PoolStringArray)->void:
 	var history = typing_history.history
-	log_info("Your typing history: " + str(history))
+	debug("Your typing history: " + str(history), Types.info, Commands.history)
+	
 
 
 func command_clear(_args:PoolStringArray)->void:
@@ -324,33 +327,7 @@ func command_clear(_args:PoolStringArray)->void:
 
 
 func command_help(_args:PoolStringArray)->void:
-	log_info("""
-	========
-	>> HELP
-	================================================================================
-	
-	@ COMMANDS
-	
-	> /help >> shows this help thing
-	> /say (MESSAGE) >> logs a message (MESSAGE) to the chat.
-	> /clear >> clears the chat.
-	> /history >> shows your typing history. (up to 25 messages or commands)
-	> /chat color (HEX_COLOR) >> changes the color of the CHAT.
-	> /network id >> shows your Network's Unique Id.
-	> /network peers >> shows a list of your peers. (if any)
-	
-	
-	@ WIP
-	
-	> /lan create >> creates a LAN server on the default port. (42069)
-	> /lan create (PORT) >> creates a LAN server on port (PORT).
-	> /lan join (IP) (PORT) >> joins a LAN server on (IP):(PORT).
-	> /lan leave >> leaves the currently connected server.
-	
-	> If you think a command is missing, please contact me at github >> https://github.com/pookiecookiie/sandbox/issues
-	> - the dev
-	================================================================================
-	""")
+	log_help(HELP.pages[0])
 
 
 func command_socket(args:PoolStringArray)->int:
@@ -382,17 +359,11 @@ func command_auth(args:PoolStringArray)->void:
 	if args.size() == 2:
 		Network.auth(email, password)
 		return
-	
-
-
-func command_send(args:PoolStringArray)->void:
-	Network.send_message(args.join(" "))
 
 
 func command_client(args:PoolStringArray)->void:
 	if args.size() == 0:
 		Network.create_client()
-		log_success("Default client")
 		return
 	
 	if args.size() == 1:
@@ -439,7 +410,7 @@ func _write_message(text, sender)->void:
 	# Only send to the network if its NOT a command.
 	# If a command does networking stuff,
 	# the COMMAND should handle that.
-	if !text.begins_with("/"):
+	if !text.begins_with("/") and Network._socket:
 		Network.send_message(text)
 	
 	
