@@ -49,6 +49,7 @@ func create_socket():
 	
 	UI.Chat.log_success("Socket connected. " + str(_socket))
 	_socket.connect("received_channel_message", self, "_receive_message")
+	_socket.connect("received_matchmaker_matched", self, "_on_matchmaker_matched")
 
 
 func create_channel(room="default"):
@@ -103,11 +104,25 @@ func auth(email, password, username=null):
 		return
 
 
-func create_match():
-	pass
+func create_match(query="*", min_players=2, max_players=2):
+	var matchmaker_ticket : NakamaRTAPI.MatchmakerTicket = yield(
+		_socket.add_matchmaker_async(query, min_players, max_players),
+		"completed"
+	)
+	if matchmaker_ticket.is_exception():
+		UI.Chat.log_error("An error occured: %s" % matchmaker_ticket)
+		return
+	UI.Chat.log_success("Got ticket: %s" % [matchmaker_ticket])
 
 
-
+func _on_matchmaker_matched(p_matched : NakamaRTAPI.MatchmakerMatched):
+	UI.Chat.log_success("Received MatchmakerMatched message: %s" % [p_matched])
+	UI.Chat.log_success("Matched opponents: %s" % [p_matched.users])
+	var joined_match : NakamaRTAPI.Match = yield(_socket.join_matched_async(p_matched), "completed")
+	if joined_match.is_exception():
+		UI.Chat.log_error("An error occured: %s" % joined_match)
+		return
+	UI.Chat.log_success("Joined match: %s" % [joined_match])
 
 
 
