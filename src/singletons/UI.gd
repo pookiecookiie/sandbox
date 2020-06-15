@@ -1,6 +1,10 @@
 extends Node
 
-onready var Chat = get_node("/root/main/ui/Chat")
+onready var Chat
+
+func _ready():
+	pass
+
 
 func _input(event):
 	if !Chat:

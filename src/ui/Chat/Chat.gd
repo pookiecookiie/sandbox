@@ -159,6 +159,11 @@ var Commands = {
 		"name": "client",
 		"color": RAJAH,
 		"command": funcref(self, "command_client")
+	},
+	"match": {
+		"name": "match",
+		"color": RAJAH,
+		"command": funcref(self, "command_match")
 	}
 }
 
@@ -384,6 +389,11 @@ func command_client(args:PoolStringArray)->void:
 		Network.create_client(ip, port, key)
 		return
 
+
+
+func command_match(args:PoolStringArray):
+	Network.create_match()
+	pass
 
 # Handles what happens when this user
 # has received a message from the server
