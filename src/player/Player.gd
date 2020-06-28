@@ -7,11 +7,11 @@ const DEBUG_FLY_SPEED : int = 12
 const DEBUG_FLY_SPRINT : float = 2.0
 const DEBUG_FLY_SLOW : float = 0.5
 
-const CROUCH_MULTIPLIER : float = 0.25
-const SPRINT_MULTIPLIER : float = 2.0
-const ACCELERATION : int = 4
+const ACCELERATION : int = 6
 const WALK_SPEED : int = 12
 const JUMP_FORCE : int = 42
+const CROUCH_MULTIPLIER : float = 0.25
+const SPRINT_MULTIPLIER : float = 2.0
 
 var GRAVITY : float = 98
 var mouse_sensitivity : float = 0.1
@@ -129,9 +129,6 @@ func _calculate_fall_vector(delta):
 			double_input_allowed = true
 		
 		
-		if Input.is_action_pressed("crouch") and flying:
-			fly_multiplier = 0.5
-		
 		if Input.is_action_pressed("sprint") and flying:
 			fly_multiplier = 2
 	
@@ -143,10 +140,13 @@ func _calculate_fall_vector(delta):
 		fall.y = JUMP_FORCE
 	
 	if Input.is_action_pressed("jump") and flying:
-		fall.y += JUMP_FORCE * fly_multiplier
+		fall.y += DEBUG_FLY_SPEED * fly_multiplier
 	
 	if Input.is_action_pressed("crouch") and flying:
-		fall.y -= JUMP_FORCE * fly_multiplier
+		fall.y -= DEBUG_FLY_SPEED * fly_multiplier
+	
+	if Input.is_action_pressed("crouch") and is_on_floor() and flying:
+		flying = !flying
 
 
 func _calculate_movement_multiplier():
