@@ -1,9 +1,6 @@
 extends Node
 
-onready var Chat
-
-func _ready():
-	pass
+onready var Chat = get_node("/root/Chat")
 
 
 func _input(event):

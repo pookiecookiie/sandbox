@@ -70,22 +70,19 @@ func _init(p_adapter : NakamaSocketAdapter,
 	_adapter = p_adapter
 	_weak_ref = weakref(_adapter)
 	var port = ""
+	
 	if (p_scheme == "ws" and p_port != 80) or (p_scheme == "wss" and p_port != 443):
 		port = ":%d" % p_port
 	
-	if p_port == -1:
+	if p_port == 0:
 		_base_uri = "%s://%s" % [p_scheme, p_host]
 	else:
 		_base_uri = "%s://%s%s" % [p_scheme, p_host, port]
-	
+		
 	_free_adapter = p_free_adapter
-	# warning-ignore:return_value_discarded
 	_adapter.connect("closed", self, "_closed")
-	# warning-ignore:return_value_discarded
 	_adapter.connect("connected", self, "_connected")
-	# warning-ignore:return_value_discarded
 	_adapter.connect("received_error", self, "_closed")
-	# warning-ignore:return_value_discarded
 	_adapter.connect("received", self, "_received")
 
 func _notification(what):
@@ -106,7 +103,6 @@ func _notification(what):
 		if _free_adapter:
 			_adapter.queue_free()
 
-# warning-ignore:unused_argument
 func _closed(p_error = null):
 	emit_signal("closed")
 	_resume_conn(ERR_CANT_CONNECT)
@@ -182,7 +178,6 @@ func _clear_responses():
 	for id in ids:
 		_cancel_response(id)
 
-# warning-ignore:unused_argument
 func _survive(p_ref):
 	pass
 
@@ -196,7 +191,6 @@ func _parse_result(p_responses : Dictionary, p_id : String, p_type, p_ns : GDScr
 	# Here we yield and wait
 	var data = yield() # Manually resumed
 	call_deferred("_survive", p_responses[p_id])
-# warning-ignore:return_value_discarded
 	p_responses.erase(p_id) # Remove this request from the list of responses
 
 	# We got an exception, maybe the task was cancelled?
@@ -266,7 +260,6 @@ func connect_async(p_session : NakamaSession, p_appear_online : bool = false, p_
 	var uri = "%s/ws?lang=en&status=%s&token=%s" % [_base_uri, str(p_appear_online).to_lower(), p_session.token]
 	logger.debug("Connecting to host: %s" % uri)
 	_adapter.connect_to_host(uri, p_connect_timeout)
-# warning-ignore:function_may_yield
 	_conn = _connect_function()
 	return _conn
 
@@ -325,7 +318,6 @@ func join_matched_async(p_matched):
 # @param p_match_id - The ID of the match to attempt to join.
 # @param p_metadata - An optional set of key-value metadata pairs to be passed to the match handler.
 # Returns a task which resolves to a multiplayer match.
-# warning-ignore:unused_argument
 func join_match_async(p_match_id : String, p_metadata = null):
 	var msg := NakamaRTMessage.MatchJoin.new()
 	msg.match_id = p_match_id

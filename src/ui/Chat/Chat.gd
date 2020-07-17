@@ -358,6 +358,7 @@ func command_socket(args:PoolStringArray)->int:
 
 
 func command_auth(args:PoolStringArray)->void:
+	UI.Chat.log_info("Authenticating...")
 	var email = args[0]
 	var password = args[1]
 	

@@ -20,13 +20,13 @@ func _exit_tree():
 		_socket.close()
 
 
-func create_client(ip="127.0.0.1", port=7350, key="nakama_godot_demo"):
+func create_client(ip="86f7553764e9.ngrok.io", port=0, key="defaultkey"):
 	_client = Nakama.create_client(key, ip, port)
 	
 	if _client:
 		UI.Chat.log_success("Client was created!")
 		
-		if port == -1:
+		if port == 0:
 			UI.Chat.log_info("Server KEY: " + key)
 			UI.Chat.log_info("Server IP: " + ip)
 			return
@@ -75,11 +75,11 @@ func send_message(msg:String):
 		UI.Chat.log_error("You are not connected to a socket!")
 		return
 	
-	var data = {
+	var _data = {
 		"msg": msg
 	}
 	
-	var message_ack : NakamaRTAPI.ChannelMessageAck = yield(_socket.write_chat_message_async(_channel.id, data), "completed")
+	var message_ack : NakamaRTAPI.ChannelMessageAck = yield(_socket.write_chat_message_async(_channel.id, _data), "completed")
 	if message_ack.is_exception():
 		UI.Chat.log_error("An error occured: %s" % message_ack)
 		return

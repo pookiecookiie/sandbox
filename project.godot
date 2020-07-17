@@ -12,72 +12,72 @@ _global_script_classes=[ {
 "base": "Reference",
 "class": "NakamaAPI",
 "language": "GDScript",
-"path": "res://nakama/api/NakamaAPI.gd"
+"path": "res://Nakama/api/NakamaAPI.gd"
 }, {
 "base": "Reference",
 "class": "NakamaAsyncResult",
 "language": "GDScript",
-"path": "res://nakama/utils/NakamaAsyncResult.gd"
+"path": "res://Nakama/utils/NakamaAsyncResult.gd"
 }, {
 "base": "Reference",
 "class": "NakamaClient",
 "language": "GDScript",
-"path": "res://nakama/client/NakamaClient.gd"
+"path": "res://Nakama/client/NakamaClient.gd"
 }, {
 "base": "Reference",
 "class": "NakamaException",
 "language": "GDScript",
-"path": "res://nakama/utils/NakamaException.gd"
+"path": "res://Nakama/utils/NakamaException.gd"
 }, {
 "base": "Node",
 "class": "NakamaHTTPAdapter",
 "language": "GDScript",
-"path": "res://nakama/client/NakamaHTTPAdapter.gd"
+"path": "res://Nakama/client/NakamaHTTPAdapter.gd"
 }, {
 "base": "Reference",
 "class": "NakamaLogger",
 "language": "GDScript",
-"path": "res://nakama/utils/NakamaLogger.gd"
+"path": "res://Nakama/utils/NakamaLogger.gd"
 }, {
 "base": "NakamaAsyncResult",
 "class": "NakamaRTAPI",
 "language": "GDScript",
-"path": "res://nakama/api/NakamaRTAPI.gd"
+"path": "res://Nakama/api/NakamaRTAPI.gd"
 }, {
 "base": "Reference",
 "class": "NakamaRTMessage",
 "language": "GDScript",
-"path": "res://nakama/api/NakamaRTMessage.gd"
+"path": "res://Nakama/api/NakamaRTMessage.gd"
 }, {
 "base": "Reference",
 "class": "NakamaSerializer",
 "language": "GDScript",
-"path": "res://nakama/utils/NakamaSerializer.gd"
+"path": "res://Nakama/utils/NakamaSerializer.gd"
 }, {
 "base": "NakamaAsyncResult",
 "class": "NakamaSession",
 "language": "GDScript",
-"path": "res://nakama/api/NakamaSession.gd"
+"path": "res://Nakama/api/NakamaSession.gd"
 }, {
 "base": "Reference",
 "class": "NakamaSocket",
 "language": "GDScript",
-"path": "res://nakama/socket/NakamaSocket.gd"
+"path": "res://Nakama/socket/NakamaSocket.gd"
 }, {
 "base": "Node",
 "class": "NakamaSocketAdapter",
 "language": "GDScript",
-"path": "res://nakama/socket/NakamaSocketAdapter.gd"
+"path": "res://Nakama/socket/NakamaSocketAdapter.gd"
 }, {
 "base": "Reference",
 "class": "NakamaStorageObjectId",
 "language": "GDScript",
-"path": "res://nakama/api/NakamaStorageObjectId.gd"
+"path": "res://Nakama/api/NakamaStorageObjectId.gd"
 }, {
 "base": "Reference",
 "class": "NakamaWriteStorageObject",
 "language": "GDScript",
-"path": "res://nakama/api/NakamaWriteStorageObject.gd"
+"path": "res://Nakama/api/NakamaWriteStorageObject.gd"
 } ]
 _global_script_class_icons={
 "NakamaAPI": "",
@@ -99,14 +99,14 @@ _global_script_class_icons={
 [application]
 
 config/name="sandbox"
-run/main_scene="res://Main.tscn"
+run/main_scene="res://src/ui/Chat/Chat.tscn"
 config/icon="res://assets/ui/icons/icon.png"
 
 [autoload]
 
-Nakama="*res://nakama/Nakama.gd"
-UI="*res://src/singletons/UI.gd"
+Nakama="*res://Nakama/Nakama.gd"
 Network="*res://src/singletons/Network.gd"
+UI="*res://src/singletons/UI.gd"
 
 [display]
 
@@ -214,4 +214,3 @@ pointing/emulate_touch_from_mouse=true
 quality/directional_shadow/size=8192
 quality/shadows/filter_mode=2
 limits/buffers/immediate_buffer_size_kb=4096
-environment/default_environment="res://assets/default_env.tres"
