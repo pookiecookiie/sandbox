@@ -4,13 +4,13 @@ extends Node
 #
 # Member Variables
 
-var _client : NakamaClient = null
-var _session : NakamaSession = null
-var _socket : NakamaSocket = null
-var _channel : NakamaRTAPI.Channel = null
+var _client = null
+var _session = null
+var _socket = null
+var _channel = null
 
-var _room : String = ""
-var data : Dictionary = {}
+var _room : String = "default_room"
+var _data : Dictionary = {}
 
 signal received_channel_message(message, user)
 
@@ -20,7 +20,7 @@ func _exit_tree():
 		_socket.close()
 
 
-func create_client(ip="86f7553764e9.ngrok.io", port=0, key="defaultkey"):
+func create_client(ip="40ee50095f5b.ngrok.io", port=0, key="defaultkey"):
 	_client = Nakama.create_client(key, ip, port)
 	
 	if _client:

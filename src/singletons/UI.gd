@@ -4,6 +4,7 @@ onready var Chat = get_node("/root/Chat")
 
 
 func _input(event):
+	# FIXME: This is not ideal, this UI handling events for the chat
 	if !Chat:
 		return
 	
