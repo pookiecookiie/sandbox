@@ -24,10 +24,6 @@ func text_entered(text:String):
 		send_message(text)
 
 
-func debug_message(text:String, from:String):
-	Chat.Messages.debug(text, from)
-
-
 func send_message(text:String):
 	Chat.Messages.say(text, username, chatname)
 	self.text = ""

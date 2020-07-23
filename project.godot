@@ -105,8 +105,9 @@ config/icon="res://assets/icon.png"
 [autoload]
 
 Nakama="*res://Nakama/Nakama.gd"
-Network="*res://src/singletons/Network.gd"
-UI="*res://src/singletons/UI.gd"
+UI="*res://singletons/UI.gd"
+Network="*res://singletons/Network.gd"
+Cache="*res://singletons/Cache.gd"
 
 [display]
 

@@ -5,14 +5,14 @@ onready var Chat = get_parent()
 
 func time(_args:Array):
 	var time = OS.get_time()
-	Chat.debug(str(time.hour) +":"+ str(time.minute) +":"+ str(time.second))
+	Chat.debug(str(time.hour) +":"+ str(time.minute) +":"+ str(time.second), self.name)
 
 
 func logs(args:Array):
 	if args[0].to_upper() == "MESSAGE":
-		Chat.debug("Message logs: " + str(Chat.Messages.logs.messages.size()))
+		Chat.debug("Message logs: " + str(Chat.Messages.logs.messages.size()), self.name)
 	elif args[0].to_upper() == "DEBUG":
-		Chat.debug("Debug logs: " + str(Chat.Messages.logs.debug.size()))
+		Chat.debug("Debug logs: " + str(Chat.Messages.logs.debug.size()), self.name)
 
 
 func account(args:Array):
@@ -22,9 +22,9 @@ func account(args:Array):
 	}
 	
 	if credentials.email and credentials.password:
-		Chat.debug("Logged in as: " + str(credentials))
+		Chat.debug("Logged in as: " + str(credentials), self.name)
 	else:
-		Chat.debug("Not logged in.")
+		Chat.debug("Not logged in.", self.name)
 
 
 func register(args:Array):
@@ -33,10 +33,10 @@ func register(args:Array):
 	var username = args[2]
 	
 	if not email.empty() and not password.empty() and not username.empty():
-		Network.create_client("643b4b4e2253.ngrok.io", 0)
+		Network.create_client()
 		Network.auth(email, password, username)
 	else:
-		Chat.debug("Could not register, please try again.")
+		Chat.debug("Could not register, please try again.", self.name)
 
 
 func login(args:Array):
@@ -44,7 +44,7 @@ func login(args:Array):
 	var password : String
 	
 	if args.empty():
-		var credentials = Chat.Cache.load_cache_credentials()
+		var credentials = Cache.load_cache()
 		email = credentials.email
 		password = credentials.password
 	else:
@@ -52,19 +52,24 @@ func login(args:Array):
 		password = args[1]
 	
 	if not email.empty() and not password.empty():
-		Network.create_client("643b4b4e2253.ngrok.io", 0)
+		Network.create_client()
 		Network.auth(email, password)
 	else:
-		Chat.debug("Could not login, please try again.")
+		Chat.debug("Could not login, please try again.", self.name)
 
 
 func cache(args:Array):
 	if args[0].to_upper() == "CREDENTIALS":
 		Chat.debug("Caching...")
-		Chat.Cache.cache_credentials()
+		Cache.save_cache("credentials", {
+			"email": Network.session_email,
+			"password": Network.session_password,
+			"username": Network.session_username
+		})
 	elif args[0].to_upper() == "DISPLAY":
 		if args[1].to_upper() == "CREDENTIALS":
-			Chat.debug(str(Chat.Cache.load_cache_credentials()))
+			Chat.debug(str(Cache.load_cache()))
+			return
 
 
 # Host a server thing
