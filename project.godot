@@ -99,6 +99,7 @@ _global_script_class_icons={
 [application]
 
 config/name="sandbox"
+run/main_scene="res://scenes/Chat/Chat.tscn"
 config/icon="res://assets/icon.png"
 
 [autoload]

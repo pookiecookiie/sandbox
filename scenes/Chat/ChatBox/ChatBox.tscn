@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://scenes/Chat/ChatBox/ChatBox.gd" type="Script" id=1]
+
+[node name="ChatBox" type="LineEdit"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+caret_blink = true
+caret_blink_speed = 0.5
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
