@@ -18,6 +18,8 @@ anchor_right = 0.0
 anchor_bottom = 0.0
 margin_right = 1024.0
 margin_bottom = 572.0
+focus_neighbour_top = NodePath(".")
+focus_next = NodePath("../ChatBox")
 size_flags_vertical = 3
 
 [node name="ChatBox" parent="." instance=ExtResource( 2 )]
@@ -26,6 +28,7 @@ anchor_bottom = 0.0
 margin_top = 576.0
 margin_right = 1024.0
 margin_bottom = 600.0
+focus_previous = NodePath("../Messages")
 
 [node name="Commands" type="Node" parent="."]
 script = ExtResource( 4 )

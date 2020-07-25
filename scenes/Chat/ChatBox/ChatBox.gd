@@ -25,6 +25,10 @@ func text_entered(text:String):
 
 
 func send_message(text:String):
+	# if connected to a channel, send the message there
+	if Network.channel and Network.socket:
+		Network.send_message(text, username, chatname)
+	
 	Chat.Messages.say(text, username, chatname)
 	self.text = ""
 
@@ -33,8 +37,8 @@ func run_command(command:String, args:Array):
 	if Commands.has_method(command):
 		Commands.call(command, args)
 	else:
-		print("doesnt")
-		Chat.debug("Command not found!")
+		Chat.error("Command not found!", self.name)
+	
 	self.text = ""
 	
 

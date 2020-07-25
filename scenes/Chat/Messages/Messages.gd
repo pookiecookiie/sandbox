@@ -7,6 +7,8 @@ enum CHAT_TYPES {
 	DIRECT # Friend chat
 }
 
+onready var Chat = get_parent()
+
 # Could load messages in here
 var logs : Dictionary = {
 	"debug": [], # write to a file
@@ -16,12 +18,18 @@ var logs : Dictionary = {
 var current_chat_type = CHAT_TYPES.LOCAL
 
 
-func get_timestamp():
-	return {
-		"hour": str(OS.get_time().hour).pad_zeros(2),
-		"minute": str(OS.get_time().minute).pad_zeros(2),
-		"second": str(OS.get_time().second).pad_zeros(2)
-	}
+func _ready():
+	Network.connect("received_channel_message", self, "received_channel_message")
+
+
+func received_channel_message(text, user, chat):
+	if user == Chat.ChatBox.username:
+		return
+	say(text, user, chat)
+
+
+func sort_ascending(a, b):
+	var time = a.timestamp.hour
 
 
 func load_messages(source:Dictionary):
@@ -32,11 +40,8 @@ func load_messages(source:Dictionary):
 		return
 	
 	for message in source.values():
-		var timestamp = get_timestamp()
-		
-		add_text("[" + timestamp.hour + ":" + timestamp.minute + ":" + timestamp.second + "] ")
-		add_text("[" + message.messenger + "] ")
-		add_text(message.text + "\n")
+		var messages : Array = []
+		messages.sort_custom(self, "sort_ascending")
 
 
 func push_log(which_log:String, text:String, kind:String, from:String, chat:String=""):
@@ -55,10 +60,6 @@ func push_log(which_log:String, text:String, kind:String, from:String, chat:Stri
 	})
 
 
-func pop_log(which_log:String):
-	pass
-
-
 func append_text(text:String, settings:Dictionary={}):
 	# Adds whatever text is passed in to the bb_code
 	# If a color is specified, it will apply that color
@@ -70,17 +71,6 @@ func append_text(text:String, settings:Dictionary={}):
 		push_color(settings.text_color)
 		append_bbcode(text)
 		newline()
-		pop()
-
-
-func append_name(name:String, settings:Dictionary={}):
-	# Will add a colon to the end of the name
-	# Will NOT add brackets encapsulating the name
-	if !settings.has("name_color"):
-		append_bbcode(name + ": ")
-	else:
-		push_color(settings.name_color)
-		append_bbcode(name + ": ")
 		pop()
 
 
@@ -113,33 +103,144 @@ func append_tag(text:String, settings:Dictionary={}):
 		pop()
 
 
+func append_from(name:String, settings:Dictionary={}):
+	# Will add a colon to the end of the name
+	# Will NOT add brackets encapsulating the name
+	if !settings.has("text_color"):
+		append_bbcode(name + ": ")
+	else:
+		push_color(settings.text_color)
+		append_bbcode(name + ": ")
+		pop()
+
+
+func append_timestamp():
+	var timestamp_raw = {
+		"hour": str(OS.get_time().hour).pad_zeros(2),
+		"minute": str(OS.get_time().minute).pad_zeros(2),
+		"second": str(OS.get_time().second).pad_zeros(2)
+	}
+	var timestamp = timestamp_raw.hour + ":" + timestamp_raw.minute + ":" + timestamp_raw.second
+	append_tag(timestamp, {
+		"text_color": Color.orangered,
+		"tag_color": Color.white
+	})
+
+
+func append_chat_tag(chat):
+	append_tag(chat, {
+		"text_color": Color.green,
+		"tag_color": Color.white
+	})
+
+func append_debug_tag():
+	append_tag("DEBUG", {
+		"text_color": Color.indigo,
+		"tag_color": Color.white
+	})
+
+
+func append_info_tag():
+	append_tag("INFO", {
+		"text_color": Color.whitesmoke,
+		"tag_color": Color.white
+	})
+
+
+func append_success_tag():
+	append_tag("SUCCESS", {
+		"text_color": Color.green,
+		"tag_color": Color.white
+	})
+
+
+func append_error_tag():
+	append_tag("ERROR", {
+		"text_color": Color.red,
+		"tag_color": Color.white
+	})
+
+
 func debug(text:String, from:String="CHAT"):
 	# Displays a DEBUG message
 	# Only visible when UI>SETTINGS>DEBUG is true
 	var kind = "DEBUG"
 	
-	if !UI.settings.DEBUG:
-		# Ignore debug messages when not debugging
-		return
+	append_timestamp()
 	
-	var timestamp = get_timestamp()
-	var timestamp_text = timestamp.hour + ":" + timestamp.minute + ":" + timestamp.second
+	append_debug_tag()
 	
-	append_tag(timestamp_text, {
-		"text_color": Color.pink,
+	append_from(from, {
+		"text_color": Color.whitesmoke,
 		"tag_color": Color.white
 	})
+	
+	append_text(text, {
+		"text_color": Color.whitesmoke
+	})
+	
+	push_log("debug", text, kind, from)
+
+
+func debug_info(text:String, from:String="CHAT"):
+	# Displays a DEBUG message
+	# Only visible when UI>SETTINGS>DEBUG is true
+	var kind = "INFO"
+	
+	append_timestamp()
+	
+	append_debug_tag()
+	
+	append_from(from, {
+		"text_color": Color.whitesmoke,
+		"tag_color": Color.white
+	})
+	
+	append_text(text, {
+		"text_color": Color.white
+	})
+	
+	push_log("debug", text, kind, from)
+
+
+func debug_success(text:String, from:String="CHAT"):
+	# Displays a DEBUG message
+	# Only visible when UI>SETTINGS>DEBUG is true
+	var kind = "SUCCESS"
+	
+	append_timestamp()
+	
+	append_debug_tag()
+	
+	append_from(from, {
+		"text_color": Color.whitesmoke,
+		"tag_color": Color.white
+	})
+	
+	append_text(text, {
+		"text_color": Color.lightgreen
+	})
+	
+	push_log("debug", text, kind, from)
+
+
+func debug_error(text:String, from:String="CHAT"):
+	# Displays a DEBUG message
+	# Only visible when UI>SETTINGS>DEBUG is true
+	var kind = "ERROR"
+	
+	append_timestamp()
+	
+	append_debug_tag()
 	
 	append_tag(from, {
 		"text_color": Color.whitesmoke,
 		"tag_color": Color.white
 	})
 	
-	append_name(kind, {
-		"name_color": Color.purple
+	append_text(text, {
+		"text_color": Color.red
 	})
-	
-	append_text(text)
 	
 	push_log("debug", text, kind, from)
 
@@ -149,28 +250,17 @@ func info(text:String, from:String="CHAT"):
 	# chat. At least for now
 	var kind = "INFO"
 	
-	var timestamp = get_timestamp()
-	var timestamp_text = timestamp.hour + ":" + timestamp.minute + ":" + timestamp.second
+	append_timestamp()
 	
-	append_tag(timestamp_text, {
-		"text_color": Color.orangered,
-		"tag_color": Color.white
-	})
+	append_info_tag()
 	
-	append_tag(from, { # This could be represented by a color.........
-		"text_color": Color.whitesmoke,
-		"tag_color": Color.white
-	})
-	
-	append_name(kind, {
+	append_from(from, {
 		"name_color": Color.lightblue
 	})
 	
 	
 	append_text(text)
 	
-	# Send this to a file i guess? not sure if there is any use to it
-	# var message_log += (timestamp_text + chat + messenger + text)
 	
 	push_log("messages", text, kind, from)
 
@@ -180,27 +270,19 @@ func success(text:String, from:String="CHAT"):
 	# chat. At least for now
 	var kind = "SUCCESS"
 	
-	var timestamp = get_timestamp()
-	var timestamp_text = timestamp.hour + ":" + timestamp.minute + ":" + timestamp.second
-	append_tag(timestamp_text, {
-		"text_color": Color.pink,
-		"tag_color": Color.white
-	})
+	append_timestamp()
 	
-	append_tag(from, { # This could be represented by a color.........
-		"text_color": Color.whitesmoke,
-		"tag_color": Color.white
-	})
+	append_success_tag()
 	
-	append_name(kind, {
-		"name_color": Color.green
+	append_from(from, {
+		"text_color": Color.white
 	})
 	
 	
-	append_text(text)
+	append_text(text, {
+		"text_color": Color.green
+	})
 	
-	# Send this to a file i guess? not sure if there is any use to it
-	# var message_log += (timestamp_text + chat + messenger + text)
 	
 	push_log("messages", text, kind, from)
 
@@ -210,27 +292,17 @@ func error(text:String, from:String="CHAT"):
 	# chat. At least for now
 	var kind = "ERROR"
 	
-	var timestamp = get_timestamp()
-	var timestamp_text = timestamp.hour + ":" + timestamp.minute + ":" + timestamp.second
-	append_tag(timestamp_text, {
-		"text_color": Color.pink,
-		"tag_color": Color.white
+	append_timestamp()
+	
+	append_error_tag()
+	
+	append_from(from, {
+		"text_color": Color.white
 	})
 	
-	append_tag(from, { # This could be represented by a color.........
-		"text_color": Color.whitesmoke,
-		"tag_color": Color.white
+	append_text(text, {
+		"text_color": Color.red
 	})
-	
-	append_name(kind, {
-		"name_color": Color.red
-	})
-	
-	
-	append_text(text)
-	
-	# Send this to a file i guess? not sure if there is any use to it
-	# var message_log += (timestamp_text + chat + messenger + text)
 	
 	push_log("messages", text, kind, from)
 
@@ -239,27 +311,17 @@ func say(text:String, from:String, chat:String):
 	# This is going to be the default pattern for PEOPLE sending messages to the
 	# chat. At least for now
 	
-	var timestamp = get_timestamp()
-	var timestamp_text = timestamp.hour + ":" + timestamp.minute + ":" + timestamp.second
-	append_tag(timestamp_text, {
-		"text_color": Color.pink,
-		"tag_color": Color.white
-	})
+	append_timestamp()
 	
-	append_tag(chat, { # This could be represented by a color.........
-		"text_color": Color.green,
-		"tag_color": Color.white
-	})
+	append_chat_tag(chat)
 	
-	append_name(from, {
-		"name_color": Color.blue
+	append_from(from, {
+		"text_color" : Color.blue
 	})
 	
 	
 	append_text(text)
 	
-	# Send this to a file i guess? not sure if there is any use to it
-	# var message_log += (timestamp_text + chat + messenger + text)
 	
 	push_log("messages", text, chat, from)
 

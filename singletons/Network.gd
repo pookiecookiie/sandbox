@@ -1,190 +1,205 @@
 extends Node
 
 
-var _client : NakamaClient
-var _session : NakamaSession
-var _socket : NakamaSocket
-var _channel = NakamaRTAPI.Channel
-
-# Repalce this using a global Cache instead
-var session_email: String
-var session_password : String
-var session_username : String
+var session : NakamaSession
+var client : NakamaClient
+var socket : NakamaSocket
+var channel = NakamaRTAPI.Channel
 
 var server_key = "defaultkey"
-var server_ip = "54206f987a47.ngrok.io"
+var server_ip = "4730e11e17d9.ngrok.io"
 var server_port = 0
 
-var _room : String = "default"
-var _data : Dictionary = {}
+var room : String = "default"
+var data : Dictionary = {}
 
+signal authenticated(session)
+signal socket_connected(socket)
+signal joined_chat(channel)
 signal received_channel_message(message, user)
 
 
 func _ready():
 	#Silently attempt to login to the cache credentials
 	
-	var credentials
+	return # For testing...
+	UI.info("Loading cache...", self.name)
 	var cache = Cache.load_cache()
-	
-	if not cache:
+	var credentials
+
+	if cache.empty() or not cache.has("accounts"):
+		UI.error("Cache is empty or has no account to login.", self.name)
 		return
 	else:
-		credentials = cache.credentials
-	
-	
-	if credentials.empty():
-		UI.Chat.debug("Cached credentials are empty", self.name)
+		credentials = cache.accounts.bobo
 	
 	if not credentials.email.empty() and not credentials.password.empty():
+		UI.info("Attempting to login...", self.name)
 		Network.create_client()
 		Network.auth(credentials.email, credentials.password)
 	else:
-		UI.Chat.debug("Cached credentials are invalid. Please try again.", self.name)
+		UI.error("Could not login, Credentials are invalid or empty!", self.name)
+
 
 func _exit_tree():
-	if _socket:
-		_socket.close()
+	if socket:
+		socket.close()
 
 
 func create_client(ip=server_ip, port=server_port, key=server_key):
 	# Manually modified Nakama create client method
 	# If the port is 0, then ignore the port
-	UI.Chat.debug("Creating client...", self.name)
+	UI.debug("Creating client...", self.name)
 	
 	server_ip = ip
 	server_port = port
 	server_key = key
 	
-	_client = Nakama.create_client(key, ip, port)
+	client = Nakama.create_client(key, ip, port)
 	
-	if _client:
-		UI.Chat.debug("Client was created!", self.name)
+	if client:
+		UI.debug_success("Client was created!", self.name)
 		
 		if port == 0:
-			UI.Chat.debug("Server KEY: " + key, self.name)
-			UI.Chat.debug("Server IP: " + ip, self.name)
+			UI.debug("Server KEY: " + key, self.name)
+			UI.debug("Server IP: " + ip, self.name)
 		else:
-			UI.Chat.debug("Server KEY: " + key, self.name)
-			UI.Chat.debug("Server IP: " + ip + ":" + str(port), self.name)
+			UI.debug("Server KEY: " + key, self.name)
+			UI.debug("Server IP: " + ip + ":" + str(port), self.name)
 
 
 func create_socket():
-	UI.Chat.debug("Creating socket...", self.name)
+	UI.debug("Creating socket...", self.name)
 	
-	if !_client:
-		UI.Chat.error("No client available to create a socket!", self.name)
+	if !client:
+		UI.error("NO client available to create a socket!", self.name)
 		return
 	else:
-		_socket = Nakama.create_socket_from(_client)
+		socket = Nakama.create_socket_from(client)
 	
-	var connected : NakamaAsyncResult = yield(_socket.connect_async(_session), "completed")
+	var connected : NakamaAsyncResult = yield(socket.connect_async(session), "completed")
 	
 	if connected.is_exception():
-		UI.Chat.error("An error occured: %s" % connected, self.name)
+		UI.error("An error occured when trying to create a socket: %s" % connected, self.name)
 	else:
-		UI.Chat.debug("Socket connected successfully. " + str(_socket), self.name)
+		UI.success("Socket connected successfully. " + str(socket), self.name)
 		
-		_socket.connect("received_channel_message", self, "_receive_message")
-		_socket.connect("received_matchmaker_matched", self, "_on_matchmaker_matched")
+		
+		emit_signal("socket_connected", socket)
+		
+		socket.connect("received_channel_message", self, "_receive_message")
+		socket.connect("received_matchmaker_matched", self, "_on_matchmaker_matched")
 
 
-func create_channel(room:String="default", type:String=NakamaSocket.ChannelType.Room):
-	UI.Chat.debug("Creating channel...", self.name)
+
+func create_channel(room:String="default", type=NakamaSocket.ChannelType.Room):
+	UI.debug("Creating channel...", self.name)
 	
-	if !_socket:
-		UI.Chat.error("Could not create a channelNot connected to a socket!", self.name)
+	if !socket:
+		UI.error("You are NOT connected to a socket!", self.name)
 		return
 	else:
-		_channel = yield(_socket.join_chat_async(room, NakamaSocket.ChannelType.Room), "completed")
+		channel = yield(socket.join_chat_async(room, type, true, false), "completed")
 	
-	if _channel.is_exception():
-		UI.Chat.error("An error occured: %s" % _channel)
-		UI.Chat.info("Channel roomname: %s, Channel type: %s" % room % type)
+	if channel.is_exception():
+		UI.error("An error occured hen Joining/creating a channel: %s" % [channel], self.name)
+		UI.error("Channel roomname: %s, Channel type: %s" % [room, type], self.name)
 	else:
-		UI.Chat.debug("Created/joined Channel: name = %s, and type = %s" % room % type)
+		emit_signal("joined_chat", channel)
+		UI.success("Created/joined Channel: name = %s, and type = %s" % [room, type], self.name)
+
+
+func send_message(msg:String, from:String, chat:String):
+	#UI.debug("Sending message...", self.name)
+	
+	if !socket:
+		UI.error("You are NOT connected to a socket!", self.name)
+		return
+	
+	if !channel:
+		UI.error("You are NOT connected to a channel!", self.name)
+		return
+	
+	var message_data = {
+		"msg": msg,
+		"user": from,
+		"chat": chat
+	}
+	
+	var message_ack : NakamaRTAPI.ChannelMessageAck = yield(socket.write_chat_message_async(channel.id, message_data), "completed")
+	
+	if message_ack.is_exception():
+		UI.error("An error occurred when trying to send a message: %s" % message_ack, self.name)
+	else:
+		#UI.debug("Message sent!", self.name)
+		pass
 
 
 func _receive_message(msg):
-	var message = JSON.parse(msg.content).result.msg
-	var user = msg.username
+	var message_data = JSON.parse(msg.content).result
+	var message = message_data.msg
+	var user = message_data.user
+	var chat = message_data.chat
 	
-	UI.Chat.debug("Received message: '%s', from: %s" % message % user, self.name)
+	emit_signal("received_channel_message", message, user, chat)
 	
-	emit_signal("received_channel_message", message, user)
-
-
-func send_message(msg:String):
-	UI.Chat.debug("Sending message...", self.name)
-	
-	if !_socket:
-		UI.Chat.error("You are not connected to a socket!", self.name)
-		return
-	
-	if !_channel:
-		UI.Chat.error("You are not connected to a channel!", self.name)
-		return
-	
-	var _data = {
-		"msg": msg
-	}
-	
-	var message_ack : NakamaRTAPI.ChannelMessageAck = yield(_socket.write_chat_message_async(_channel.id, _data), "completed")
-	
-	if message_ack.is_exception():
-		UI.Chat.error("An error occured: %s" % message_ack)
-		return
-	else:
-		UI.Chat.debug("Message sent!", self.name)
+	#UI.debug("Received message: '%s', from: %s" % [message, user], self.name)
 
 
 func auth(email:String, password:String, username:String=""):
-	UI.Chat.debug("Authenticating...", self.name)
+	UI.debug("Authenticating...", self.name)
 	
-	if !_client:
-		UI.Chat.debug("No client available to create a session!")
+	if !client:
+		UI.error("NO client available to create a session!", self.name)
 		return
-	
-	session_email = email
-	session_password = password
 		
 	if username.empty():
-		_session = yield(_client.authenticate_email_async(email, password), "completed")		
+		session = yield(client.authenticate_email_async(email, password), "completed")
 	else:
-		session_username = username
-		_session = yield(_client.authenticate_email_async(email, password, username), "completed")
-		
+		session = yield(client.authenticate_email_async(email, password, username), "completed")
 	
-	if _session.is_exception():
-		UI.Chat.debug("Something went wrong when creating a session: %s" % _session, self.name)
+	Cache.save_session({
+		"email": email,
+		"password": password,
+		"username": session.username,
+		"session": session
+	})
+	
+	UI.Chat.ChatBox.username = Cache.session.username
+	
+	if session.is_exception():
+		UI.error("Something went WRONG when creating a session: %s" % session, self.name)
 	else:
-		UI.Chat.debug("Authenticated! Session OK", self.name)
+		# Authenticated Successfully
+		emit_signal("authenticated", session)
+
+		UI.success("Authenticated!", self.name)
 
 
 func create_match(query="*", min_players=2, max_players=10):
-	UI.Chat.debug("Creating match...", self.name)
+	UI.debug("Creating match...", self.name)
 	
 	var matchmaker_ticket : NakamaRTAPI.MatchmakerTicket = yield(
-		_socket.add_matchmaker_async(query, min_players, max_players),
+		socket.add_matchmaker_async(query, min_players, max_players),
 		"completed"
 	)
 	
 	if matchmaker_ticket.is_exception():
-		UI.Chat.debug("An error occured: %s" % matchmaker_ticket, self.name)
+		UI.debug_error("An error occured: %s" % [matchmaker_ticket], self.name)
 	else:
-		UI.Chat.debug("Got ticket: %s" % [matchmaker_ticket], self.name)
+		UI.debug_success("Got ticket: %s" % [matchmaker_ticket], self.name)
 
 
 func _on_matchmaker_matched(p_matched : NakamaRTAPI.MatchmakerMatched):
-	UI.Chat.debug("Match found!", self.name)
-	UI.Chat.debug("Matched opponents: %s" % [p_matched.users], self.name)
+	UI.debug_success("Match found!", self.name)
+	UI.debug("Matched opponents: %s" % [p_matched.users], self.name)
 	
-	var joined_match : NakamaRTAPI.Match = yield(_socket.join_matched_async(p_matched), "completed")
+	var joined_match : NakamaRTAPI.Match = yield(socket.join_matched_async(p_matched), "completed")
 	
 	if joined_match.is_exception():
-		UI.Chat.error("An error occured: %s" % joined_match, self.name)
+		UI.error("An ERROR occured when joining the match: %s" % [joined_match], self.name)
 	else:
-		UI.Chat.debug("Joined match: %s" % [joined_match], self.name)
+		UI.success("Joined match: %s" % [joined_match], self.name)
 
 
 
