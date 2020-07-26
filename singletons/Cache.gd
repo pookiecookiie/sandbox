@@ -1,17 +1,22 @@
 extends Node
 
 
+var cache = {}
+
 var accounts = {}
 var data = {}
 var session = {}
+var messages = {}
 
 
 func _ready():
-	var cache = load_cache()
+	cache = load_cache()
 	
-	if cache.has("data") and cache.has("accounts"):
+	if !cache.empty():
 		data = cache.data
 		accounts = cache.accounts
+		session = cache.session
+		messages = cache.messages
 
 
 func _exit_tree():
@@ -20,6 +25,17 @@ func _exit_tree():
 
 func save_session(session_to_save):
 	session = session_to_save
+
+
+func save_message(message):
+	messages[message.id] = {
+		"id": message.id, # "visual" identifier
+		"timestamp": OS.get_time(), # When it was sent
+		"text": message.text, # What was sent
+		"kind": message.kind, # What kind of message it was
+		"from": message.from, # Who sent it
+		"chat": message.chat # Where it was sent to, if direct message
+	}
 
 
 func save_account(account_key:String, account_to_save):
@@ -54,19 +70,19 @@ func save_cache():
 	var cache_file = File.new()
 	cache_file.open("user://cache.save", File.WRITE)
 	
-	if data.empty() and accounts.empty():
-		UI.info("Nothing to save.", self.name)
-		return
-	
-	var cache = {
+	var _cache = {
 		"data": data,
-		"accounts": accounts
+		"accounts": accounts,
+		"session": session,
+		"messages": messages
 	}
 	
 	# Store the save dictionary as a new line in the save file
 	cache_file.store_line(to_json(cache))
-	UI.info("Saved.")
 	cache_file.close()
+	
+	UI.info("Cache Saved.")
+	return _cache
 
 
 func load_cache():

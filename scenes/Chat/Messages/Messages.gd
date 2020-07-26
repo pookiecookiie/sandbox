@@ -1,5 +1,7 @@
 extends RichTextLabel
 
+onready var Chat = get_parent()
+
 enum CHAT_TYPES {
 	LOCAL, # On the current match or place such as lobby
 	GROUP, # Private group
@@ -7,57 +9,48 @@ enum CHAT_TYPES {
 	DIRECT # Friend chat
 }
 
-onready var Chat = get_parent()
-
-# Could load messages in here
-var logs : Dictionary = {
-	"debug": [], # write to a file
-	"messages": [], # write to the server...maybe.....
-}
-
 var current_chat_type = CHAT_TYPES.LOCAL
 
+var message_logs = 0
+
+var latest_messages = []
 
 func _ready():
-	Network.connect("received_channel_message", self, "received_channel_message")
+	Network.connect("received_chat_message", self, "receive_chat_message")
 
 
-func received_channel_message(text, user, chat):
-	if user == Chat.ChatBox.username:
+func receive_chat_message(message, user, chat):
+	# REVISE THIS, not so confident here
+	if Network.session.username.to_upper() == user.to_upper():
 		return
-	say(text, user, chat)
-
-
-func sort_ascending(a, b):
-	var time = a.timestamp.hour
+	
+	say(message, user, chat)
 
 
 func load_messages(source:Dictionary):
-	# ONE TIME THING because its a bit slow
-	bbcode_text = ""
-	
-	if source.size() < 1:
-		return
-	
-	for message in source.values():
-		var messages : Array = []
-		messages.sort_custom(self, "sort_ascending")
+	# TODO
+	pass
 
 
 func push_log(which_log:String, text:String, kind:String, from:String, chat:String=""):
 	# Updates the logs ONLY
+	message_logs += 1
 	
-	var message_id = str(logs.messages.size()+1)
-	var message_key = "message_" + message_id
+	var message_id = "m"+str(message_logs+1)
 	
-	logs[which_log].append({
-		"id": message_id, # "visual" identifier
+	var message = {
+		"id": message_id, # Identifier
 		"timestamp": OS.get_time(), # When it was sent
 		"text": text, # What was sent
 		"kind": kind, # What kind of message it was
 		"from": from, # Who sent it
 		"chat": chat # Where it was sent to, if direct message
-	})
+	}
+	
+	# Can be accessed by Cache.messages.m[id]
+	# One being the FIRST message stored
+	# Maybe don't need this
+	# Cache.save_message(message)
 
 
 func append_text(text:String, settings:Dictionary={}):
@@ -170,7 +163,7 @@ func debug(text:String, from:String="CHAT"):
 	
 	append_debug_tag()
 	
-	append_from(from, {
+	append_from(from.to_upper(), {
 		"text_color": Color.whitesmoke,
 		"tag_color": Color.white
 	})
@@ -191,7 +184,7 @@ func debug_info(text:String, from:String="CHAT"):
 	
 	append_debug_tag()
 	
-	append_from(from, {
+	append_from(from.to_upper(), {
 		"text_color": Color.whitesmoke,
 		"tag_color": Color.white
 	})
@@ -212,7 +205,7 @@ func debug_success(text:String, from:String="CHAT"):
 	
 	append_debug_tag()
 	
-	append_from(from, {
+	append_from(from.to_upper(), {
 		"text_color": Color.whitesmoke,
 		"tag_color": Color.white
 	})
@@ -233,7 +226,7 @@ func debug_error(text:String, from:String="CHAT"):
 	
 	append_debug_tag()
 	
-	append_tag(from, {
+	append_tag(from.to_upper(), {
 		"text_color": Color.whitesmoke,
 		"tag_color": Color.white
 	})
@@ -254,7 +247,7 @@ func info(text:String, from:String="CHAT"):
 	
 	append_info_tag()
 	
-	append_from(from, {
+	append_from(from.to_upper(), {
 		"name_color": Color.lightblue
 	})
 	
@@ -274,7 +267,7 @@ func success(text:String, from:String="CHAT"):
 	
 	append_success_tag()
 	
-	append_from(from, {
+	append_from(from.to_upper(), {
 		"text_color": Color.white
 	})
 	
@@ -296,7 +289,7 @@ func error(text:String, from:String="CHAT"):
 	
 	append_error_tag()
 	
-	append_from(from, {
+	append_from(from.to_upper(), {
 		"text_color": Color.white
 	})
 	
@@ -315,8 +308,8 @@ func say(text:String, from:String, chat:String):
 	
 	append_chat_tag(chat)
 	
-	append_from(from, {
-		"text_color" : Color.blue
+	append_from(from.to_upper(), {
+		"text_color" : Color.lightblue
 	})
 	
 	

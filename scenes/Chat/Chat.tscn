@@ -29,6 +29,7 @@ margin_top = 576.0
 margin_right = 1024.0
 margin_bottom = 600.0
 focus_previous = NodePath("../Messages")
+mouse_filter = 1
 
 [node name="Commands" type="Node" parent="."]
 script = ExtResource( 4 )

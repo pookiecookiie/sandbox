@@ -9,7 +9,10 @@ func _ready():
 	pass
 
 
-func _input(_event):
-	if Input.is_action_just_pressed("ui_accept"):
+func _input(event):
+	if event.is_action_pressed("ui_accept"):
 		ChatBox.grab_focus()
+	
+	if event.is_action_pressed("ui_cancel"):
+		ChatBox.release_focus()
 
